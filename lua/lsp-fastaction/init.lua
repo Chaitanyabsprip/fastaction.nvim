@@ -102,6 +102,8 @@ local show_menu = function(responses)
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.title, 0, 0, -1)
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
 
+    window.hide_cursor(bufnr)
+
     for _, action in pairs(action_tbl) do
         vim.api.nvim_buf_set_keymap(
             bufnr,

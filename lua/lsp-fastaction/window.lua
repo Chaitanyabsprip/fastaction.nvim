@@ -213,6 +213,21 @@ function M.popup_window(contents, filetype, opts)
     return content_buf, content_win
 end
 
+local cursor_hl_grp = 'FastActionHiddenCursor'
+
+local guicursor = vim.o.guicursor
+-- Hide cursor whilst menu is open
+function M.hide_cursor(bufnr)
+    if vim.o.termguicolors and vim.o.guicursor ~= '' then
+        local fmt = string.format
+        if vim.fn.hlexists(cursor_hl_grp) == 0 then
+            vim.cmd(fmt("highlight %s gui=reverse blend=100", cursor_hl_grp))
+        end
+        vim.o.guicursor = fmt('a:%s', cursor_hl_grp)
+        vim.cmd(fmt("autocmd! WinClosed,BufWipeout <buffer=%d> set guicursor=%s", bufnr, guicursor))
+    end
+end
+
 --  get decoration column with (signs + folding + number)
 function M.window_decoration_columns()
     local function starts_with(str, start)
