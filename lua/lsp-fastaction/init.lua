@@ -12,7 +12,7 @@ local defaults_config = {
     highlight = {
         window_hl = 'NormalFloat',
     },
-    action_title = 'CodeActions:',
+    action_title = 'Code Actions:',
 }
 
 if _G.__is_dev then
@@ -86,7 +86,10 @@ local show_menu = function(responses)
         border = true,
         height = win_height,
         width = win_width,
-    }, true)
+    })
+
+    -- Add highlight for title
+    api.nvim_buf_add_highlight(bufnr, namespace, 'Title', 0, 0, -1)
 
     for _, action in pairs(action_tbl) do
         vim.api.nvim_buf_set_keymap(
