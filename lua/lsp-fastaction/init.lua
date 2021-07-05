@@ -50,7 +50,11 @@ local show_menu = function(responses)
     local contents = {}
     local title = state.config.action_title
 
+    local divider_char = "─"
     table.insert(contents, title)
+    -- add a divider line
+    table.insert(contents, 2, divider_char)
+
     -- get all action match with  code_action_data
     for _, resp in pairs(responses) do
         local match = get_action_key(resp.title, key_used)
@@ -80,6 +84,9 @@ local show_menu = function(responses)
         table.insert(contents, string.format('[%s] %s', action.menu_key, action.data.title))
     end
     local win_width, win_height = vim.lsp.util._make_floating_popup_size(contents, {})
+    --- replace divider placeholder with full width divider now we know the window width
+    contents[2] =  string.rep(divider_char, win_width)
+
     local bufnr, _ = window.popup_window(contents, 'windmenu', {
         window_hl = state.config.highlight.window_hl,
         enter = true,
@@ -100,7 +107,7 @@ local show_menu = function(responses)
             { noremap = true }
         )
     end
-    local line = 1
+    local line = 2 -- avoid the title and the divider i.e. start at line 2
     for _, _ in pairs(contents) do
         api.nvim_buf_add_highlight(bufnr, namespace, 'MoreMsg', line, 0, 3)
         line = line + 1
