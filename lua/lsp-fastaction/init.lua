@@ -10,13 +10,16 @@ local namespace = api.nvim_create_namespace('windmenu')
 local defaults_config = {
     action_data = {},
     highlight = {
-        window_hl = 'NormalFloat',
+        window = 'NormalFloat',
+        divider = 'FloatBorder',
+        title = 'Title',
+        key = 'MoreMsg',
     },
     action_title = 'Code Actions:',
 }
 
 if _G.__is_dev then
-    _G.__state = _G.__state or {config = defaults_config}
+    _G.__state = _G.__state or { config = defaults_config }
     state = _G.__state
 end
 
@@ -85,10 +88,10 @@ local show_menu = function(responses)
     end
     local win_width, win_height = vim.lsp.util._make_floating_popup_size(contents, {})
     --- replace divider placeholder with full width divider now we know the window width
-    contents[2] =  string.rep(divider_char, win_width)
+    contents[2] = string.rep(divider_char, win_width)
 
     local bufnr, _ = window.popup_window(contents, 'windmenu', {
-        window_hl = state.config.highlight.window_hl,
+        window = state.config.highlight.window,
         enter = true,
         border = true,
         height = win_height,
@@ -96,7 +99,8 @@ local show_menu = function(responses)
     })
 
     -- Add highlight for title
-    api.nvim_buf_add_highlight(bufnr, namespace, 'Title', 0, 0, -1)
+    api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.title, 0, 0, -1)
+    api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
 
     for _, action in pairs(action_tbl) do
         vim.api.nvim_buf_set_keymap(
