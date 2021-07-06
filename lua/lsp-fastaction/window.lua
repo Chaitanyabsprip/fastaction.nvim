@@ -223,8 +223,8 @@ function M.hide_cursor(bufnr)
         if vim.fn.hlexists(cursor_hl_grp) == 0 then
             vim.cmd(fmt("highlight %s gui=reverse blend=100", cursor_hl_grp))
         end
-        vim.o.guicursor = fmt('a:%s', cursor_hl_grp)
-        vim.cmd(fmt("autocmd! WinClosed,BufWipeout <buffer=%d> set guicursor=%s", bufnr, guicursor))
+        vim.o.guicursor = fmt('a:%s/lCursor', cursor_hl_grp)
+        vim.cmd(fmt("autocmd! BufLeave,WinLeave,CmdwinEnter,CmdlineEnter <buffer=%d> set guicursor=%s", bufnr, guicursor))
     end
 end
 
