@@ -137,6 +137,37 @@ function M.floating_window(opts)
     return content_buf, content_win
 end
 
+local cursor_hl_grp = 'FastActionHiddenCursor'
+
+local guicursor = vim.o.guicursor
+-- Hide cursor whilst menu is open
+function M.hide_cursor()
+    if vim.o.termguicolors and vim.o.guicursor ~= '' then
+        local fmt = string.format
+        if vim.fn.hlexists(cursor_hl_grp) == 0 then
+            vim.cmd(fmt("highlight %s gui=reverse blend=100", cursor_hl_grp))
+        end
+        vim.o.guicursor = fmt('a:%s/lCursor', cursor_hl_grp)
+    end
+end
+
+local function restore_cursor()
+    vim.o.guicursor = guicursor
+end
+
+function _G.__fastaction_popup_close()
+    restore_cursor()
+    pcall(vim.api.nvim_win_close, vim.api.nvim_get_current_win(), true)
+end
+---Helper function to close the actions menu
+---@param win integer
+---@param events string[]
+local function close_popup_window(win, events)
+    if #events > 0 then
+        vim.cmd("autocmd "..table.concat(events, ',').." <buffer> ++once lua __fastaction_popup_close()")
+    end
+end
+
 function M.popup_window(contents, filetype, opts)
     validate({
         contents = { contents, 't' },
@@ -202,30 +233,15 @@ function M.popup_window(contents, filetype, opts)
     if opts.window_hl then
         api.nvim_win_set_option(content_win, 'winhighlight', 'Normal:' .. opts.window_hl)
     end
-    vim.lsp.util.close_preview_autocmd({
+    close_popup_window(content_win, {
         'CursorMoved',
         'BufHidden',
         'InsertCharPre',
         'WinLeave',
         'FocusLost',
-    }, content_win)
+    })
 
     return content_buf, content_win
-end
-
-local cursor_hl_grp = 'FastActionHiddenCursor'
-
-local guicursor = vim.o.guicursor
--- Hide cursor whilst menu is open
-function M.hide_cursor(bufnr)
-    if vim.o.termguicolors and vim.o.guicursor ~= '' then
-        local fmt = string.format
-        if vim.fn.hlexists(cursor_hl_grp) == 0 then
-            vim.cmd(fmt("highlight %s gui=reverse blend=100", cursor_hl_grp))
-        end
-        vim.o.guicursor = fmt('a:%s/lCursor', cursor_hl_grp)
-        vim.cmd(fmt("autocmd! BufLeave,WinLeave,CmdwinEnter,CmdlineEnter <buffer=%d> set guicursor=%s", bufnr, guicursor))
-    end
 end
 
 --  get decoration column with (signs + folding + number)
