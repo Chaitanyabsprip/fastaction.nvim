@@ -9,6 +9,7 @@ local namespace = api.nvim_create_namespace('windmenu')
 
 local defaults_config = {
     action_data = {},
+    hide_cursor = true,
     highlight = {
         window = 'NormalFloat',
         divider = 'FloatBorder',
@@ -101,6 +102,10 @@ local show_menu = function(responses)
     -- Add highlight for title
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.title, 0, 0, -1)
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
+
+    if state.config.hide_cursor then
+        window.hide_cursor(bufnr)
+    end
 
     for _, action in pairs(action_tbl) do
         vim.api.nvim_buf_set_keymap(
