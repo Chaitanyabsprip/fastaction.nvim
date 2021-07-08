@@ -11,8 +11,9 @@ Plug {'windwp/lsp-fastaction.nvim'}
 ```lua
 --- sample for dart with flutter
 fastaction.setup({
+    hide_cursor = true,
     action_data = {
-      --- action for filteype dart
+      --- action for filetype dart
         ['dart'] = {
             -- pattern is a lua regex with lower case
             { pattern = 'import library', key = 'i', order = 1 },
