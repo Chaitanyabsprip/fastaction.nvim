@@ -104,7 +104,7 @@ local show_menu = function(responses)
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
 
     if state.config.hide_cursor then
-        window.hide_cursor(bufnr)
+        window.hide_cursor()
     end
 
     for _, action in pairs(action_tbl) do
@@ -126,24 +126,43 @@ local show_menu = function(responses)
     state.action_tbl = action_tbl
 end
 
+local request_code_action = function(params)
+    local results_lsp, err = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 10000)
+    if err then
+        print("ERROR: " .. err)
+        return
+    end
+    if not results_lsp or vim.tbl_isempty(results_lsp) then
+        print("No results from textDocument/codeAction")
+        return
+    end
+    local commands = {}
+    for client_id, response in pairs(results_lsp) do
+        if response.result then
+            local client = vim.lsp.get_client_by_id(client_id)
+            for _, result in pairs(response.result) do
+                result.client_name = client and client.name or ""
+                table.insert(commands, result)
+            end
+        end
+    end
+    show_menu(commands)
+end
+
+
 M.code_action = function()
     M.bufnr = vim.api.nvim_get_current_buf()
     local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics() }
     local params = vim.lsp.util.make_range_params()
     params.context = context
-    vim.lsp.buf_request(0, 'textDocument/codeAction', params, function(_, _, response)
-        show_menu(response)
-    end)
+    request_code_action(params)
 end
-
 M.range_code_action = function()
     M.bufnr = vim.api.nvim_get_current_buf()
     local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics() }
     local params = vim.lsp.util.make_given_range_params()
     params.context = context
-    vim.lsp.buf_request(0, 'textDocument/codeAction', params, function(_, _, response)
-        show_menu(response)
-    end)
+    request_code_action(params)
 end
 
 -- copy from telescope
