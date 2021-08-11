@@ -47,12 +47,12 @@ fastaction.setup({
         '<leader>a',
         '<cmd>lua require("lsp-fastaction").code_action()<CR>'
     )
-    vim.api.nvim_buf_set_keymap({
+    vim.api.nvim_buf_set_keymap(
         bufnr,
         'v',
         '<leader>a',
         "<esc><cmd>lua require('lsp-fastaction').range_code_action()<CR>",
-    })
+    )
 ```
 
 
