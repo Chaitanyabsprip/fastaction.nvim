@@ -10,7 +10,7 @@ Plug {'windwp/lsp-fastaction.nvim'}
 
 ```lua
 --- sample for dart with flutter
-fastaction.setup({
+require('lsp-fastaction').setup({
     hide_cursor = true,
     action_data = {
       --- action for filetype dart
