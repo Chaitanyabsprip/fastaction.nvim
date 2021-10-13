@@ -9,6 +9,7 @@ local namespace = api.nvim_create_namespace('windmenu')
 
 local defaults_config = {
     action_data = {},
+    focus = true,
     hide_cursor = true,
     highlight = {
         window = 'NormalFloat',
@@ -91,39 +92,58 @@ local show_menu = function(responses)
     --- replace divider placeholder with full width divider now we know the window width
     contents[2] = string.rep(divider_char, win_width)
 
-    local bufnr, _ = window.popup_window(contents, 'windmenu', {
+    local bufnr, winid = window.popup_window(contents, 'windmenu', {
         window = state.config.highlight.window,
-        enter = true,
+        enter = state.config.focus,
         border = true,
         height = win_height,
         width = win_width,
     })
 
+    state.action_tbl = action_tbl
+    state.winid = winid
+
     -- Add highlight for title
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.title, 0, 0, -1)
     api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
 
-    if state.config.hide_cursor then
-        window.hide_cursor()
-    end
-
-    for _, action in pairs(action_tbl) do
-        vim.api.nvim_buf_set_keymap(
-            bufnr,
-            'n',
-            action.menu_key,
-            string.format('<cmd>lua require("lsp-fastaction").do_action("%s")<cr>', action.menu_key),
-            { noremap = true }
-        )
-    end
     local line = 2 -- avoid the title and the divider i.e. start at line 2
     for _, _ in pairs(contents) do
         api.nvim_buf_add_highlight(bufnr, namespace, 'MoreMsg', line, 0, 3)
         line = line + 1
     end
 
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<esc>', ':q<cr>', { noremap = true, silent = true})
-    state.action_tbl = action_tbl
+    if state.config.focus then
+        if state.config.hide_cursor then
+            window.hide_cursor()
+        end
+
+        for _, action in pairs(action_tbl) do
+            vim.api.nvim_buf_set_keymap(
+            bufnr,
+            'n',
+            action.menu_key,
+            string.format('<cmd>lua require("lsp-fastaction").do_action("%s")<cr>', action.menu_key),
+            { noremap = true }
+            )
+        end
+
+        vim.api.nvim_buf_set_keymap(bufnr, 'n', '<esc>', ':q<cr>', { noremap = true, silent = true})
+    else
+        window.hide_cursor()
+        vim.defer_fn(function ()
+            local ok, keynum = pcall(vim.fn.getchar)
+            window.restore_cursor()
+            if not ok then
+                vim.api.nvim_win_close(state.winid, true)
+                return
+            end
+            if type(keynum)== 'number' then
+                local key = string.char(keynum)
+                M.do_action(key)
+            end
+        end, 100)
+    end
 end
 
 local request_code_action = function(params)
@@ -186,11 +206,12 @@ M.do_action = function(key)
     for _, action in pairs(data) do
         if action.menu_key == key then
             action.menu_key = nil
-            vim.api.nvim_win_close(0, true)
+            vim.api.nvim_win_close(state.winid, true)
             lsp_execute_command(action.data)
             return
         end
     end
+    vim.api.nvim_win_close(state.winid, true)
 end
 
 return M

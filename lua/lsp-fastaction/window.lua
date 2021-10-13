@@ -151,12 +151,12 @@ function M.hide_cursor()
     end
 end
 
-local function restore_cursor()
+function M.restore_cursor()
     vim.o.guicursor = guicursor
 end
 
 function _G.__fastaction_popup_close()
-    restore_cursor()
+    M.restore_cursor()
     pcall(vim.api.nvim_win_close, vim.api.nvim_get_current_win(), true)
 end
 ---Helper function to close the actions menu
@@ -229,17 +229,17 @@ function M.popup_window(contents, filetype, opts)
 
     if opts.enter == true then
         api.nvim_set_current_win(content_win)
+        close_popup_window(content_win, {
+            'CursorMoved',
+            'BufHidden',
+            'InsertCharPre',
+            'WinLeave',
+            'FocusLost',
+        })
     end
     if opts.window_hl then
         api.nvim_win_set_option(content_win, 'winhighlight', 'Normal:' .. opts.window_hl)
     end
-    close_popup_window(content_win, {
-        'CursorMoved',
-        'BufHidden',
-        'InsertCharPre',
-        'WinLeave',
-        'FocusLost',
-    })
 
     return content_buf, content_win
 end
