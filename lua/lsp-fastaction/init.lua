@@ -19,6 +19,7 @@ local defaults_config = {
 	action_title = "Code Actions:",
 }
 
+---@diagnostic disable-next-line: undefined-field
 if _G.__is_dev then
 	_G.__state = _G.__state or { config = defaults_config }
 	state = _G.__state
@@ -105,13 +106,9 @@ local show_menu = function(responses)
 	end
 
 	for _, action in pairs(action_tbl) do
-		vim.api.nvim_buf_set_keymap(
-			bufnr,
-			"n",
-			action.menu_key,
-			string.format('<cmd>lua require("lsp-fastaction").do_action("%s")<cr>', action.menu_key),
-			{ noremap = true }
-		)
+		vim.keymap.set("n", action.menu_key, function()
+			require("lsp-fastaction").do_action(action.menu_key)
+		end, { buffer = bufnr, noremap = true })
 	end
 	local line = 2 -- avoid the title and the divider i.e. start at line 2
 	for _, _ in pairs(contents) do
@@ -119,11 +116,12 @@ local show_menu = function(responses)
 		line = line + 1
 	end
 
-	vim.api.nvim_buf_set_keymap(bufnr, "n", "<esc>", ":q<cr>", { noremap = true, silent = true })
+	vim.keymap.set("n", "<esc>", ":q<cr>", { buffer = bufnr, noremap = true, silent = true })
 	state.action_tbl = action_tbl
 end
 
 local request_code_action = function(params)
+	---@diagnostic disable-next-line: param-type-mismatch
 	local results_lsp, err = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 10000)
 	if err then
 		print("ERROR: " .. err)
@@ -148,15 +146,18 @@ local request_code_action = function(params)
 end
 
 M.code_action = function()
-	M.bufnr = vim.api.nvim_get_current_buf()
-	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics() }
+	M.bufnr = api.nvim_get_current_buf()
+	local lnum = api.nvim_win_get_cursor(0)[1] - 1
+	local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
 	local params = vim.lsp.util.make_range_params()
 	params.context = context
 	request_code_action(params)
 end
+
 M.range_code_action = function()
-	M.bufnr = vim.api.nvim_get_current_buf()
-	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics() }
+	M.bufnr = api.nvim_get_current_buf()
+	local lnum = api.nvim_win_get_cursor(0)[1] - 1
+	local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
 	local params = vim.lsp.util.make_given_range_params()
 	params.context = context
 	request_code_action(params)
@@ -184,7 +185,7 @@ M.do_action = function(key)
 	for _, action in pairs(data) do
 		if action.menu_key == key then
 			action.menu_key = nil
-			vim.api.nvim_win_close(0, true)
+			api.nvim_win_close(0, true)
 			lsp_execute_command(action.data)
 			return
 		end
