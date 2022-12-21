@@ -148,7 +148,7 @@ end
 M.code_action = function()
 	M.bufnr = api.nvim_get_current_buf()
 	local lnum = api.nvim_win_get_cursor(0)[1] - 1
-	local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
+	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics(M.bufnr, lnum, {}, nil) }
 	local params = vim.lsp.util.make_range_params()
 	params.context = context
 	request_code_action(params)
@@ -157,7 +157,7 @@ end
 M.range_code_action = function()
 	M.bufnr = api.nvim_get_current_buf()
 	local lnum = api.nvim_win_get_cursor(0)[1] - 1
-	local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
+	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics(M.bufnr, lnum, {}, nil) }
 	local params = vim.lsp.util.make_given_range_params()
 	params.context = context
 	request_code_action(params)
