@@ -38,7 +38,7 @@ M.window_border_chars_round = {
 	{ "│", "FloatBorder" },
 }
 
-M.window_border_chars = M.window_border_chars_rounded
+M.window_border_chars = M.window_border_chars_round
 
 function M.scale_win(w, h)
 	local win_width = floor(vim.fn.winwidth(0) * w)
