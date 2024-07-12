@@ -1,16 +1,17 @@
 ## Lsp-fastaction
+
 A small plugin to map a lsp code action to 1 key and sort the code
 action
 
 Install
 
 ```bash
-Plug {'windwp/lsp-fastaction.nvim'}
+Plug {'Chaitanyabsprip/fastaction.nvim'}
 ```
 
 ```lua
 --- sample for dart with flutter
-require('lsp-fastaction').setup({
+require('fastaction').setup({
     hide_cursor = true,
     action_data = {
       --- action for filetype dart
@@ -45,19 +46,16 @@ require('lsp-fastaction').setup({
         bufnr,
         'n',
         '<leader>a',
-        '<cmd>lua require("lsp-fastaction").code_action()<CR>'
+        '<cmd>lua require("fastaction").code_action()<CR>'
     )
     vim.api.nvim_buf_set_keymap(
         bufnr,
         'v',
         '<leader>a',
-        "<esc><cmd>lua require('lsp-fastaction').range_code_action()<CR>",
+        "<esc><cmd>lua require('fastaction').range_code_action()<CR>",
     )
 ```
-
 
 ## 🌟 Credits
 
 Most of code I copy from telescope and octo @pwntester 😃
-
-

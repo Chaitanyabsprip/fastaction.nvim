@@ -1,15 +1,15 @@
 local M = {}
 local m = {}
-local lsp = require("lsp-fastaction.lsp")
-local window = require("lsp-fastaction.window")
-local keys = require("lsp-fastaction.keys")
+local lsp = require("fastaction.lsp")
+local window = require("fastaction.window")
+local keys = require("fastaction.keys")
 
 m.config = {}
 ---@type FastActionConfig
 m.defaults = {
 	popup = {
 		dismiss_keys = { "j", "k", "<c-c>", "q" },
-        border = "rounded",
+		border = "rounded",
 		hide_cursor = true,
 		highlight = {
 			divider = "FloatBorder",
