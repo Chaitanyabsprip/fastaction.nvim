@@ -1,8 +1,7 @@
 local M = {}
 local lsp = require("lsp-fastaction.lsp")
-local select = require("lsp-fastaction.select")
 local window = require("lsp-fastaction.window")
-local utils = require("lsp-fastaction.utils")
+local keys = require("lsp-fastaction.keys")
 
 local config = {}
 local defaults = {
@@ -22,51 +21,15 @@ function M.code_action()
 	if code_actions == nil or vim.tbl_isempty(code_actions) then
 		return vim.notify("No code actions available", vim.log.levels.WARN)
 	end
-	local used_keys = {}
-	---@type {name: string, key: string, item: CodeAction, order: integer}[]}
-	local options = {}
-
-	---@type string[]
-	local content = {}
-
-	for i, ca in ipairs(code_actions) do
-		local option = {}
-		option.item = ca
-		option.order = 0
-		option.name = ca.title
-		local match = utils.get_action_key(option.name, config.action_data or {}, used_keys)
-		if match then
-			option.key = match.key
-			option.order = match.order
-		else
-			option.key = utils.get_key(option.name, used_keys)
-		end
-		options[i] = option
-		content[i] = string.format("[%s] %s", option.key, option.name)
-	end
-
-	table.sort(options, function(a, b)
-		return a.order < b.order
+	M.select(code_actions, {
+		prompt = config.popup_title,
+		format_item = function(item)
+			return item.title
+		end,
+		relative = "cursor",
+	}, function(item)
+		lsp.execute_command(item)
 	end)
-
-	---@param buffer integer
-	local function setup_keymaps(buffer)
-		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
-		for _, option in ipairs(options) do
-			vim.keymap.set("n", option.key, function()
-				window.popup_close()
-				lsp.execute_command(option.item)
-			end, kopts)
-		end
-	end
-
-	---@type WindowOpts | SelectOpts
-	local winopts = {}
-	winopts.title = defaults.popup_title
-	winopts.dismiss_keys = defaults.dismiss_keys
-	winopts.highlight = defaults.highlight
-	winopts.hide_cursor = true
-	window.popup_window(content, setup_keymaps, winopts)
 end
 
 --- Prompts the user to pick from a list of items, allowing arbitrary (potentially asynchronous)
@@ -115,15 +78,22 @@ function M.select(items, opts, on_choice)
 	local content = {}
 
 	for i, item in ipairs(items) do
-		local option = {}
-		option.item = item
-		option.order = 0
-		option.name = opts.format_item(item)
-		option.key = utils.get_key(option.name, used_keys)
-		option.name = string.format("[%s] %s", option.key, option.name)
+		local option = { item = item, order = 0, name = opts.format_item(item) }
+
+		local match = keys.get_action_key(option.name, config.action_data or {}, used_keys)
+		if match then
+			option.key = match.key
+			option.order = match.order
+		else
+			option.key = keys.get_key(option.name, used_keys)
+		end
 		options[i] = option
-		content[i] = option.name
+		content[i] = string.format("[%s] %s", option.key, option.name)
 	end
+
+	table.sort(options, function(a, b)
+		return a.order < b.order
+	end)
 
 	---@param buffer integer
 	local function setup_keymaps(buffer)
@@ -135,6 +105,7 @@ function M.select(items, opts, on_choice)
 			end, kopts)
 		end
 	end
+
 	---@type WindowOpts | SelectOpts
 	local winopts = opts
 	winopts.dismiss_keys = defaults.dismiss_keys
@@ -149,51 +120,15 @@ function M.range_code_action()
 	if code_actions == nil or vim.tbl_isempty(code_actions) then
 		return vim.notify("No code actions available", vim.log.levels.WARN)
 	end
-	local used_keys = {}
-	---@type {name: string, key: string, item: CodeAction, order: integer}[]}
-	local options = {}
-
-	---@type string[]
-	local content = {}
-
-	for i, ca in ipairs(code_actions) do
-		local option = {}
-		option.item = ca
-		option.order = 0
-		option.name = ca.title
-		local match = utils.get_action_key(option.name, config.action_data or {}, used_keys)
-		if match then
-			option.key = match.key
-			option.order = match.order
-		else
-			option.key = utils.get_key(option.name, used_keys)
-		end
-		options[i] = option
-		content[i] = string.format("[%s] %s", option.key, option.name)
-	end
-
-	table.sort(options, function(a, b)
-		return a.order < b.order
+	M.select(code_actions, {
+		prompt = config.popup_title,
+		format_item = function(item)
+			return item.title
+		end,
+		relative = "cursor",
+	}, function(item)
+		lsp.execute_command(item)
 	end)
-
-	---@param buffer integer
-	local function setup_keymaps(buffer)
-		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
-		for _, option in ipairs(options) do
-			vim.keymap.set("n", option.key, function()
-				window.popup_close()
-				lsp.execute_command(option.item)
-			end, kopts)
-		end
-	end
-
-	---@type WindowOpts | SelectOpts
-	local winopts = {}
-	winopts.title = defaults.popup_title
-	winopts.dismiss_keys = defaults.dismiss_keys
-	winopts.highlight = defaults.highlight
-	winopts.hide_cursor = true
-	window.popup_window(content, setup_keymaps, winopts)
 end
 
 function M.setup(opts)

@@ -26,6 +26,7 @@
 ---@field dismiss_keys? string[]
 ---@field highlight table<string, string>
 ---@field relative? string
+---@field hide_cursor? boolean
 
 ---@class SelectOpts
 ---@field prompt? string
