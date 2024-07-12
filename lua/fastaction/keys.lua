@@ -56,11 +56,12 @@ M.get_key = function(name, invalid_keys, valid_keys)
 end
 
 ---@param title string
----@param config ActionConfig[]
+---@param config table<string, ActionConfig[]>
 ---@param invalid_keys string[]
 ---@return ActionConfig | nil
 function M.get_action_key(title, config, invalid_keys)
-	for _, value in pairs(config) do
+	local priority = config[vim.bo.filetype] or {}
+	for _, value in pairs(priority) do
 		if not vim.tbl_contains(invalid_keys, value.key) and title:lower():match(value.pattern) then
 			return value
 		end
