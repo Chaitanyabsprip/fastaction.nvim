@@ -48,6 +48,39 @@ Using `lazy.nvim`
 }
 ```
 
+<details>
+<summary>Example Configuration</summary>
+
+```lua
+{
+  popup = {
+    dismiss_keys = { "j", "k", "<c-c>", "q" },
+    border = "rounded",
+    hide_cursor = true,
+    highlight = {
+      divider = "FloatBorder",
+      key = "MoreMsg",
+      title = "Title",
+      window = "NormalFloat",
+    },
+    title = "Select one of:",
+  },
+  priority = {
+    dart = {
+      { pattern = "organize import", key ="o", order = 1 },
+      { pattern = "extract method", key ="x", order = 2 },
+      { pattern = "extract widget", key ="e", order = 3 },
+    },
+    typescript = {
+      { pattern = 'to existing import declaration', key = 'a', order = 2 },
+      { pattern = 'from module', key = 'i', order = 1 },
+    }
+  }
+}
+```
+
+</details>
+
 ## Usage
 
 **fastaction.nvim** exposes three function apart from setup.
