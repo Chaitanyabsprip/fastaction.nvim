@@ -30,6 +30,7 @@
 ---the select popup.
 ---@field popup? PopupConfig
 ---@field priority? table<string, ActionConfig[]>
+---@field register_ui_select? boolean
 
 ---@class PopupConfig
 ---@field title? string

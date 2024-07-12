@@ -20,6 +20,7 @@ m.defaults = {
 		title = "Code Actions:",
 	},
 	priority = {},
+	register_ui_select = false,
 }
 
 function M.code_action()
@@ -132,6 +133,9 @@ end
 ---@param opts FastActionConfig
 function M.setup(opts)
 	m.config = vim.tbl_extend("force", m.defaults, opts)
+	if m.config.register_ui_select then
+		vim.ui.select = M.select
+	end
 end
 
 return M
