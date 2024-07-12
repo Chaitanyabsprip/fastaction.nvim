@@ -17,7 +17,7 @@ m.defaults = {
 			title = "Title",
 			window = "NormalFloat",
 		},
-		title = "Code Actions:",
+		title = "Select one of:",
 	},
 	priority = {},
 	register_ui_select = false,
@@ -29,6 +29,7 @@ function M.code_action()
 		return vim.notify("No code actions available", vim.log.levels.INFO)
 	end
 	M.select(code_actions, {
+		prompt = "Code Actions:",
 		format_item = function(item)
 			return item.title
 		end,
@@ -42,6 +43,7 @@ function M.range_code_action()
 		return vim.notify("No code actions available", vim.log.levels.WARN)
 	end
 	local opts = {
+		prompt = "Code Actions:",
 		format_item = function(item)
 			return item.title
 		end,
