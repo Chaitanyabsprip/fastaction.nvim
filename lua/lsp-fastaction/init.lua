@@ -1,195 +1,203 @@
+local M = {}
+local lsp = require("lsp-fastaction.lsp")
+local select = require("lsp-fastaction.select")
 local window = require("lsp-fastaction.window")
 local utils = require("lsp-fastaction.utils")
 
-local api = vim.api
-local state = {}
-local M = {}
-local key_used = {}
-local namespace = api.nvim_create_namespace("windmenu")
-
-local defaults_config = {
-	action_data = {},
+local config = {}
+local defaults = {
 	hide_cursor = true,
+	dismiss_keys = { "j", "k", "<c-c>", "q" },
 	highlight = {
 		window = "NormalFloat",
 		divider = "FloatBorder",
 		title = "Title",
 		key = "MoreMsg",
 	},
-	action_title = "Code Actions:",
+	popup_title = "Code Actions:",
 }
 
----@diagnostic disable-next-line: undefined-field
-if _G.__is_dev then
-	_G.__state = _G.__state or { config = defaults_config }
-	state = _G.__state
-end
-
-M.setup = function(opts)
-	state.config = vim.tbl_extend("force", defaults_config, opts)
-end
-
-local get_action_key = function(title, keys)
-	local action_data = state.config.action_data[vim.bo.filetype] or {}
-	for _, value in pairs(action_data) do
-		if vim.tbl_contains(keys, value.key) == false and title:lower():match(value.pattern) then
-			return value
-		end
+function M.code_action()
+	local code_actions = lsp.code_action()
+	if code_actions == nil or vim.tbl_isempty(code_actions) then
+		return vim.notify("No code actions available", vim.log.levels.WARN)
 	end
-end
+	local used_keys = {}
+	---@type {name: string, key: string, item: CodeAction, order: integer}[]}
+	local options = {}
 
-local show_menu = function(responses)
-	key_used = {}
-	local action_tbl = {}
-	if responses == nil or vim.tbl_isempty(responses) then
-		print("No code actions available")
-		return
-	end
+	---@type string[]
+	local content = {}
 
-	table.sort(responses, function(a, b)
-		return #a.title < #b.title
-	end)
-	local contents = {}
-	local title = state.config.action_title
-
-	local divider_char = "─"
-	table.insert(contents, title)
-	-- add a divider line
-	table.insert(contents, 2, divider_char)
-
-	-- get all action match with  code_action_data
-	for _, resp in pairs(responses) do
-		local match = get_action_key(resp.title, key_used)
-		local action = {
-			data = resp,
-			order = 0,
-		}
+	for i, ca in ipairs(code_actions) do
+		local option = {}
+		option.item = ca
+		option.order = 0
+		option.name = ca.title
+		local match = utils.get_action_key(option.name, config.action_data or {}, used_keys)
 		if match then
-			action.menu_key = match.key
-			action.order = match.order
+			option.key = match.key
+			option.order = match.order
 		else
-			-- order by length
-			action.order = #resp.title + 4
+			option.key = utils.get_key(option.name, used_keys)
 		end
-		table.insert(key_used, action.menu_key)
-		table.insert(action_tbl, action)
+		options[i] = option
+		content[i] = string.format("[%s] %s", option.key, option.name)
 	end
 
-	table.sort(action_tbl, function(a, b)
+	table.sort(options, function(a, b)
 		return a.order < b.order
 	end)
-	for _, action in pairs(action_tbl) do
-		if not action.menu_key then
-			action.menu_key = utils.get_key(action.data.title, key_used)
-			table.insert(key_used, action.menu_key)
-		end
-		table.insert(contents, string.format("[%s] %s", action.menu_key, action.data.title))
-	end
-	local win_width, win_height = vim.lsp.util._make_floating_popup_size(contents, {})
-	--- replace divider placeholder with full width divider now we know the window width
-	contents[2] = string.rep(divider_char, win_width)
 
-	local bufnr, _ = window.popup_window(contents, "windmenu", {
-		window = state.config.highlight.window,
-		enter = true,
-		border = true,
-		height = win_height,
-		width = win_width,
-	})
-
-	-- Add highlight for title
-	api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.title, 0, 0, -1)
-	api.nvim_buf_add_highlight(bufnr, namespace, state.config.highlight.divider, 1, 0, -1)
-
-	if state.config.hide_cursor then
-		window.hide_cursor()
-	end
-
-	for _, action in pairs(action_tbl) do
-		vim.keymap.set("n", action.menu_key, function()
-			require("lsp-fastaction").do_action(action.menu_key)
-		end, { buffer = bufnr, noremap = true })
-	end
-	local line = 2 -- avoid the title and the divider i.e. start at line 2
-	for _, _ in pairs(contents) do
-		api.nvim_buf_add_highlight(bufnr, namespace, "MoreMsg", line, 0, 3)
-		line = line + 1
-	end
-
-	vim.keymap.set("n", "<esc>", ":q<cr>", { buffer = bufnr, noremap = true, silent = true })
-	state.action_tbl = action_tbl
-end
-
-local request_code_action = function(params)
-	---@diagnostic disable-next-line: param-type-mismatch
-	local results_lsp, err = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 10000)
-	if err then
-		print("ERROR: " .. err)
-		return
-	end
-	if not results_lsp or vim.tbl_isempty(results_lsp) then
-		print("No results from textDocument/codeAction")
-		return
-	end
-	local commands = {}
-	for client_id, response in pairs(results_lsp) do
-		if response.result then
-			local client = vim.lsp.get_client_by_id(client_id)
-			for _, result in pairs(response.result) do
-				result.client_id = client_id
-				result.client_name = client and client.name or ""
-				table.insert(commands, result)
-			end
+	---@param buffer integer
+	local function setup_keymaps(buffer)
+		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
+		for _, option in ipairs(options) do
+			vim.keymap.set("n", option.key, function()
+				window.popup_close()
+				lsp.execute_command(option.item)
+			end, kopts)
 		end
 	end
-	show_menu(commands)
+
+	---@type WindowOpts | SelectOpts
+	local winopts = {}
+	winopts.title = defaults.popup_title
+	winopts.dismiss_keys = defaults.dismiss_keys
+	winopts.highlight = defaults.highlight
+	winopts.hide_cursor = true
+	window.popup_window(content, setup_keymaps, winopts)
 end
 
-M.code_action = function()
-	M.bufnr = api.nvim_get_current_buf()
-	local lnum = api.nvim_win_get_cursor(0)[1] - 1
-	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics(M.bufnr, lnum, {}, nil) }
-	local params = vim.lsp.util.make_range_params()
-	params.context = context
-	request_code_action(params)
-end
+--- Prompts the user to pick from a list of items, allowing arbitrary (potentially asynchronous)
+--- work until `on_choice`.
+---
+--- Example:
+---
+--- ```lua
+--- vim.ui.select({ 'tabs', 'spaces' }, {
+---     prompt = 'Select tabs or spaces:',
+---     format_item = function(item)
+---         return "I'd like to choose " .. item
+---     end,
+--- }, function(choice)
+---     if choice == 'spaces' then
+---         vim.o.expandtab = true
+---     else
+---         vim.o.expandtab = false
+---     end
+--- end)
+--- ```
+---
+---@param items any[] Arbitrary items
+---@param opts SelectOpts Additional options
+---     - prompt (string|nil)
+---               Text of the prompt. Defaults to `Select one of:`
+---     - format_item (function item -> text)
+---               Function to format an
+---               individual item from `items`. Defaults to `tostring`.
+---     - kind (string|nil)
+---               Arbitrary hint string indicating the item shape.
+---               Plugins reimplementing `vim.ui.select` may wish to
+---               use this to infer the structure or semantics of
+---               `items`, or the context in which select() was called.
+---@param on_choice fun(item: any|nil, idx: integer|nil)
+---               Called once the user made a choice.
+---               `idx` is the 1-based index of `item` within `items`.
+---               `nil` if the user aborted the dialog.
+function M.select(items, opts, on_choice)
+	opts.format_item = opts.format_item or tostring
+	local used_keys = {}
+	---@type {name: string, key: string, item: any, order: integer}[]}
+	local options = {}
 
-M.range_code_action = function()
-	M.bufnr = api.nvim_get_current_buf()
-	local lnum = api.nvim_win_get_cursor(0)[1] - 1
-	local context = { diagnostics = vim.lsp.diagnostic.get_line_diagnostics(M.bufnr, lnum, {}, nil) }
-	local params = vim.lsp.util.make_given_range_params()
-	params.context = context
-	request_code_action(params)
-end
+	---@type string[]
+	local content = {}
 
--- copy from telescope
-local function lsp_execute_command(val)
-	-- table.insert(command.arguments,{data=' '})
-	-- vim.lsp.buf_request(bn,'workspace/executeCommand', command)
-	local offset_encoding = vim.lsp.get_client_by_id(val.client_id).offset_encoding
-	if val.edit or type(val.command) == "table" then
-		if val.edit then
-			vim.lsp.util.apply_workspace_edit(val.edit, offset_encoding)
-		end
-		if type(val.command) == "table" then
-			vim.lsp.buf.execute_command(val.command)
-		end
-	else
-		vim.lsp.buf.execute_command(val)
+	for i, item in ipairs(items) do
+		local option = {}
+		option.item = item
+		option.order = 0
+		option.name = opts.format_item(item)
+		option.key = utils.get_key(option.name, used_keys)
+		option.name = string.format("[%s] %s", option.key, option.name)
+		options[i] = option
+		content[i] = option.name
 	end
-end
 
-M.do_action = function(key)
-	local data = state.action_tbl
-	for _, action in pairs(data) do
-		if action.menu_key == key then
-			action.menu_key = nil
-			api.nvim_win_close(0, true)
-			lsp_execute_command(action.data)
-			return
+	---@param buffer integer
+	local function setup_keymaps(buffer)
+		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
+		for i, option in ipairs(options) do
+			vim.keymap.set("n", option.key, function()
+				on_choice(option.item, i)
+				window.popup_close()
+			end, kopts)
 		end
 	end
+	---@type WindowOpts | SelectOpts
+	local winopts = opts
+	winopts.dismiss_keys = defaults.dismiss_keys
+	winopts.highlight = defaults.highlight
+	winopts.relative = "editor"
+	winopts.hide_cursor = true
+	window.popup_window(content, setup_keymaps, winopts)
+end
+
+function M.range_code_action()
+	local code_actions = lsp.range_code_action()
+	if code_actions == nil or vim.tbl_isempty(code_actions) then
+		return vim.notify("No code actions available", vim.log.levels.WARN)
+	end
+	local used_keys = {}
+	---@type {name: string, key: string, item: CodeAction, order: integer}[]}
+	local options = {}
+
+	---@type string[]
+	local content = {}
+
+	for i, ca in ipairs(code_actions) do
+		local option = {}
+		option.item = ca
+		option.order = 0
+		option.name = ca.title
+		local match = utils.get_action_key(option.name, config.action_data or {}, used_keys)
+		if match then
+			option.key = match.key
+			option.order = match.order
+		else
+			option.key = utils.get_key(option.name, used_keys)
+		end
+		options[i] = option
+		content[i] = string.format("[%s] %s", option.key, option.name)
+	end
+
+	table.sort(options, function(a, b)
+		return a.order < b.order
+	end)
+
+	---@param buffer integer
+	local function setup_keymaps(buffer)
+		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
+		for _, option in ipairs(options) do
+			vim.keymap.set("n", option.key, function()
+				window.popup_close()
+				lsp.execute_command(option.item)
+			end, kopts)
+		end
+	end
+
+	---@type WindowOpts | SelectOpts
+	local winopts = {}
+	winopts.title = defaults.popup_title
+	winopts.dismiss_keys = defaults.dismiss_keys
+	winopts.highlight = defaults.highlight
+	winopts.hide_cursor = true
+	window.popup_window(content, setup_keymaps, winopts)
+end
+
+function M.setup(opts)
+	config = vim.tbl_extend("force", defaults, opts)
 end
 
 return M
