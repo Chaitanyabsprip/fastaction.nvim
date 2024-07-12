@@ -1,10 +1,4 @@
 
----@class Action
----@field action CodeAction
----@field key string
----@field title string
----@field order integer
-
 ---@class CodeAction: lsp.CodeAction
 ---@field client_id integer
 ---@field client_name string
