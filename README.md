@@ -1,61 +1,83 @@
-## Lsp-fastaction
+# FastAction.nvim
 
-A small plugin to map a lsp code action to 1 key and sort the code
-action
+FastAction.nvim is a sleek, efficient plugin designed to optimize code actions
+in Neovim. By leveraging Neovim's built-in LSP capabilities, it offers a simple
+and intuitive interface that enhances your coding experience.
 
-Install
+## Features
 
-```bash
-Plug {'Chaitanyabsprip/fastaction.nvim'}
-```
+- **Popup Interface**: Display code actions in a customizable popup window.
+- **Keybindings**:Configure keys to quickly dismiss or select code actions,
+  making your workflow more efficient.
+- **Priority Handling**:Customize the display order of actions based on
+  priority, ensuring the most used actions are always visible on top.
+- **Flexible Selection**:Extendable selection prompt that can replace Neovim's
+  built-in `vim.ui.select`, providing more versatility in how you interact with lists
+
+## Installation
+
+Using `lazy.nvim`
 
 ```lua
---- sample for dart with flutter
-require('fastaction').setup({
+  {
+      'Chaitanyabsprip/fastaction.nvim',
+      ---@type FastActionConfig
+      opts = {},
+  }
+```
+
+## Configuration
+
+**fastaction.nvim** comes with sensible defaults to get you started quickly:
+
+```lua
+{
+  popup = {
+    dismiss_keys = { "j", "k", "<c-c>", "q" },
+    border = "rounded",
     hide_cursor = true,
-    action_data = {
-      --- action for filetype dart
-        ['dart'] = {
-            -- pattern is a lua regex with lower case
-            { pattern = 'import library', key = 'i', order = 1 },
-            { pattern = 'wrap with widget', key = 'w', order = 2 },
-            { pattern = 'wrap with column', key = 'c', order = 3 },
-            { pattern = 'wrap with row', key = 'r', order = 3 },
-            { pattern = 'wrap with sizedbox', key = 's', order = 3 },
-            { pattern = 'wrap with container', key = 'C', order = 4 },
-            { pattern = 'wrap with center', key = 'E', order = 4 },
-            { pattern = 'padding', key = 'P', order = 4 },
-            { pattern = 'wrap with streambuilder', key = 'S', order = 5 },
-            { pattern = 'remove', key = 'R', order = 5 },
-
-            --range code action
-            { pattern = "surround with %'if'", key = 'i', order = 2 },
-            { pattern = 'try%-catch', key = 't', order = 2 },
-            { pattern = 'for%-in', key = 'f', order = 2 },
-            { pattern = 'setstate', key = 's', order = 2 },
-        },
-        ['typescript'] = {
-            { pattern = 'to existing import declaration', key = 'a', order = 2 },
-            { pattern = 'from module', key = 'i', order = 1 },
-        },
+    highlight = {
+      divider = "FloatBorder",
+      key = "MoreMsg",
+      title = "Title",
+      window = "NormalFloat",
     },
-})
+    title = "Select one of:",
+  },
+  priority = {},
+}
+```
 
---- add this to your mapping on lsp
-    vim.api.nvim_buf_set_keymap(
-        bufnr,
+## Usage
+
+**fastaction.nvim** exposes three function apart from setup.
+
+- `code_action()`: Displays code actions in a popup window.
+- `range_code_action()`: Displays code actions in a popup window for a visual range.
+- `select(items: any, opts: SelectOpts, on_choice: fun(item: any))`: Displays a
+  selection prompt window.
+
+To integrate these functions with your LSP mappings, add the following to your configuration:
+
+```lua
+    vim.keymap.set(
         'n',
         '<leader>a',
         '<cmd>lua require("fastaction").code_action()<CR>'
+        { buffer = bufnr }
     )
-    vim.api.nvim_buf_set_keymap(
-        bufnr,
+    vim.keymap.set(
         'v',
         '<leader>a',
         "<esc><cmd>lua require('fastaction').range_code_action()<CR>",
+        { buffer = bufnr }
     )
 ```
 
-## 🌟 Credits
+You can also use `require('fastaction').select` as a replacement for `vim.ui.select`.
 
-Most of code I copy from telescope and octo @pwntester 😃
+## Credit
+
+This repository is a fork of
+[nvim-pack/lsp-fastaction.nvim](https://github.com/nvim-pack/lsp-fastaction.nvim)
+building on its foundations to provide an even more streamlined and efficient experience.
