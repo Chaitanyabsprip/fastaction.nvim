@@ -61,7 +61,7 @@ end
 ---@return ActionConfig | nil
 function M.get_action_key(title, config, invalid_keys)
 	local priority = config[vim.bo.filetype] or {}
-	for _, value in pairs(priority) do
+	for _, value in ipairs(priority) do
 		if not vim.tbl_contains(invalid_keys, value.key) and title:lower():match(value.pattern) then
 			return value
 		end
