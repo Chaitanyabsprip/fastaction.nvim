@@ -1,35 +1,52 @@
 local M = {}
+local m = {}
 local lsp = require("lsp-fastaction.lsp")
 local window = require("lsp-fastaction.window")
 local keys = require("lsp-fastaction.keys")
 
-local config = {}
-local defaults = {
-	hide_cursor = true,
-	dismiss_keys = { "j", "k", "<c-c>", "q" },
-	highlight = {
-		window = "NormalFloat",
-		divider = "FloatBorder",
-		title = "Title",
-		key = "MoreMsg",
+m.config = {}
+---@type FastActionConfig
+m.defaults = {
+	popup = {
+		dismiss_keys = { "j", "k", "<c-c>", "q" },
+        border = "rounded",
+		hide_cursor = true,
+		highlight = {
+			divider = "FloatBorder",
+			key = "MoreMsg",
+			title = "Title",
+			window = "NormalFloat",
+		},
+		title = "Code Actions:",
 	},
-	popup_title = "Code Actions:",
+	priority = {},
 }
 
 function M.code_action()
 	local code_actions = lsp.code_action()
 	if code_actions == nil or vim.tbl_isempty(code_actions) then
-		return vim.notify("No code actions available", vim.log.levels.WARN)
+		return vim.notify("No code actions available", vim.log.levels.INFO)
 	end
 	M.select(code_actions, {
-		prompt = config.popup_title,
 		format_item = function(item)
 			return item.title
 		end,
 		relative = "cursor",
-	}, function(item)
-		lsp.execute_command(item)
-	end)
+	}, lsp.execute_command)
+end
+
+function M.range_code_action()
+	local code_actions = lsp.range_code_action()
+	if code_actions == nil or vim.tbl_isempty(code_actions) then
+		return vim.notify("No code actions available", vim.log.levels.WARN)
+	end
+	local opts = {
+		format_item = function(item)
+			return item.title
+		end,
+		relative = "cursor",
+	}
+	M.select(code_actions, opts, lsp.execute_command)
 end
 
 --- Prompts the user to pick from a list of items, allowing arbitrary (potentially asynchronous)
@@ -80,7 +97,7 @@ function M.select(items, opts, on_choice)
 	for i, item in ipairs(items) do
 		local option = { item = item, order = 0, name = opts.format_item(item) }
 
-		local match = keys.get_action_key(option.name, config.action_data or {}, used_keys)
+		local match = keys.get_action_key(option.name, m.config.priority or {}, used_keys)
 		if match then
 			option.key = match.key
 			option.order = match.order
@@ -107,32 +124,14 @@ function M.select(items, opts, on_choice)
 	end
 
 	---@type WindowOpts | SelectOpts
-	local winopts = opts
-	winopts.dismiss_keys = defaults.dismiss_keys
-	winopts.highlight = defaults.highlight
-	winopts.relative = "editor"
-	winopts.hide_cursor = true
+	local winopts = vim.tbl_extend("keep", opts, m.config.popup)
+	winopts.relative = opts["relative"] or "editor"
 	window.popup_window(content, setup_keymaps, winopts)
 end
 
-function M.range_code_action()
-	local code_actions = lsp.range_code_action()
-	if code_actions == nil or vim.tbl_isempty(code_actions) then
-		return vim.notify("No code actions available", vim.log.levels.WARN)
-	end
-	M.select(code_actions, {
-		prompt = config.popup_title,
-		format_item = function(item)
-			return item.title
-		end,
-		relative = "cursor",
-	}, function(item)
-		lsp.execute_command(item)
-	end)
-end
-
+---@param opts FastActionConfig
 function M.setup(opts)
-	config = vim.tbl_extend("force", defaults, opts)
+	m.config = vim.tbl_extend("force", m.defaults, opts)
 end
 
 return M

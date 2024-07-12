@@ -36,8 +36,10 @@ function M.popup_close()
 	pcall(vim.api.nvim_win_close, vim.api.nvim_get_current_win(), true)
 end
 
+---@param height integer
+---@param width integer
 ---@param opts WindowOpts | SelectOpts
-function m.make_winopts(opts)
+function m.make_winopts(height, width, opts)
 	vim.validate({ opts = { opts, "t", true } })
 	opts = opts or {}
 	vim.validate({
@@ -51,23 +53,21 @@ function m.make_winopts(opts)
 	local maxcols = vim.api.nvim_get_option_value("columns", {})
 
 	local isTopHalf = lines_above < lines_below
-	local isLeftHalf = vim.fn.wincol() + opts.width <= vim.api.nvim_get_option_value("columns", {})
+	local isLeftHalf = vim.fn.wincol() + width <= vim.api.nvim_get_option_value("columns", {})
 	local col = (opts.x_offset or 0) + (isLeftHalf and 1 or 0)
-	local row = (opts.y_offset or 0) + (isTopHalf and 2 or -1)
+	local row = (opts.y_offset or 0) + (isTopHalf and 1 or -1)
 	if opts.relative == "editor" then
 		col = maxcols - (opts.x_offset or 0)
 		row = opts.y_offset or 0
 	end
-	local winopts = {
+	return {
 		col = col,
-		height = opts.height,
+		height = height,
 		relative = opts.relative or "cursor",
 		row = row,
 		style = "minimal",
-		width = opts.width,
+		width = width,
 	}
-
-	return winopts
 end
 
 ---@param content string[]
@@ -87,22 +87,20 @@ function M.popup_window(content, on_buf_create, opts)
 	---@type string[]
 	content = vim.split(table.concat(content, "\n"), "\n", { trimempty = true })
 
-	if not opts.width then
-		opts.width = 0
-		for i, line in ipairs(content) do
-			-- Clean up the input and add left pad.
-			---@type string
-			line = " " .. line:gsub("\r", "")
-			local line_width = vim.fn.strdisplaywidth(line)
-			opts.width = math.max(line_width, opts.width)
-			content[i] = line
-		end
-		-- Add right padding of 1 each.
-		opts.width = opts.width + 1
+	local width = 0
+	for i, line in ipairs(content) do
+		-- Clean up the input and add left pad.
+		---@type string
+		line = " " .. line:gsub("\r", "")
+		local line_width = vim.fn.strdisplaywidth(line)
+		width = math.max(line_width, width)
+		content[i] = line
 	end
+	-- Add right padding of 1 each.
+	width = width + 1
 	opts.divider = opts.divider or "─"
-	content = vim.list_extend({ " " .. (opts.prompt or opts.title), string.rep(opts.divider, opts.width) }, content)
-	opts.height = opts.height or #content
+	content = vim.list_extend({ " " .. (opts.prompt or opts.title), string.rep(opts.divider, width) }, content)
+	local height = #content
 
 	local buffer = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_lines(buffer, 0, -1, true, content)
@@ -125,8 +123,8 @@ function M.popup_window(content, on_buf_create, opts)
 		on_buf_create(buffer)
 	end
 
-	local winopts = m.make_winopts(opts)
-	winopts.border = opts.border or "rounded"
+	local winopts = m.make_winopts(height, width, opts)
+	winopts.border = opts.border
 	local win = vim.api.nvim_open_win(buffer, true, winopts)
 	if opts.window_hl then
 		vim.api.nvim_set_option_value("winhighlight", "Normal:" .. opts.window_hl, { win = win })

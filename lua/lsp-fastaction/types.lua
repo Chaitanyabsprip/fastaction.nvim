@@ -11,8 +11,6 @@
 ---@class WindowOpts
 ---@field title? string
 ---@field divider? string
----@field width? integer
----@field height? integer
 ---@field border? string | table
 ---@field window_hl? string
 ---@field x_offset? integer
