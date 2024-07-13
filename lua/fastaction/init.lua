@@ -23,6 +23,8 @@ m.defaults = {
 	register_ui_select = false,
 }
 
+--- Show a selection prompt with the code actions available for the cursor
+--- position.
 function M.code_action()
 	local code_actions = lsp.code_action()
 	if code_actions == nil or vim.tbl_isempty(code_actions) then
@@ -37,6 +39,8 @@ function M.code_action()
 	}, lsp.execute_command)
 end
 
+--- Show a selection prompt with the code actions available for the visual
+--- selection range.
 function M.range_code_action()
 	local code_actions = lsp.range_code_action()
 	if code_actions == nil or vim.tbl_isempty(code_actions) then
@@ -119,6 +123,7 @@ function M.select(items, opts, on_choice)
 	local function setup_keymaps(buffer)
 		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
 		for i, option in ipairs(options) do
+			vim.buf.keymap.set()
 			vim.keymap.set("n", option.key, function()
 				window.popup_close()
 				on_choice(option.item, i)
