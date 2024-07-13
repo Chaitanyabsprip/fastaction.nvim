@@ -120,8 +120,8 @@ function M.select(items, opts, on_choice)
 		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
 		for i, option in ipairs(options) do
 			vim.keymap.set("n", option.key, function()
-				on_choice(option.item, i)
 				window.popup_close()
+				on_choice(option.item, i)
 			end, kopts)
 		end
 	end
