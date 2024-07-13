@@ -123,7 +123,6 @@ function M.select(items, opts, on_choice)
 	local function setup_keymaps(buffer)
 		local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
 		for i, option in ipairs(options) do
-			vim.buf.keymap.set()
 			vim.keymap.set("n", option.key, function()
 				window.popup_close()
 				on_choice(option.item, i)
