@@ -33,7 +33,7 @@
 ---Determines if the select popup should be registered as a `vim.ui.select` handler.
 ---@field register_ui_select? boolean
 ---Keys to use to map options.
----@field keys? fun(title): string | string
+---@field keys? string[] | string
 ---Keys to use to dismiss the popup.
 ---@field dismiss_keys? string[]
 

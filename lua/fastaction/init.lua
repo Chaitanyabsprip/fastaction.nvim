@@ -5,8 +5,10 @@ local window = require("fastaction.window")
 local keys = require("fastaction.keys")
 
 m.config = {}
+m.keys = {}
 ---@type FastActionConfig
 m.defaults = {
+	keys = "qwertyuiopasdfghlzxcvbnm",
 	popup = {
 		dismiss_keys = { "j", "k", "<c-c>", "q" },
 		border = "rounded",
@@ -109,7 +111,7 @@ function M.select(items, opts, on_choice)
 			option.key = match.key
 			option.order = match.order
 		else
-			option.key = keys.get_key(option.name, used_keys)
+			option.key = keys.get_key(option.name, used_keys, m.keys)
 		end
 		options[i] = option
 		content[i] = string.format("[%s] %s", option.key, option.name)
@@ -141,6 +143,11 @@ function M.setup(opts)
 	m.config = vim.tbl_extend("force", m.defaults, opts)
 	if m.config.register_ui_select then
 		vim.ui.select = M.select
+	end
+	if type(m.config.keys) == "table" then
+		m.keys = m.config.keys
+	elseif type(m.config.keys) == "string" then
+		m.keys = vim.split(m.config.keys, "", { trimempty = true })
 	end
 end
 
