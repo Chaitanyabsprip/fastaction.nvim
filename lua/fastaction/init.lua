@@ -8,9 +8,9 @@ m.config = {}
 m.keys = {}
 ---@type FastActionConfig
 m.defaults = {
+	dismiss_keys = { "j", "k", "<c-c>", "q" },
 	keys = "qwertyuiopasdfghlzxcvbnm",
 	popup = {
-		dismiss_keys = { "j", "k", "<c-c>", "q" },
 		border = "rounded",
 		hide_cursor = true,
 		highlight = {
@@ -135,6 +135,7 @@ function M.select(items, opts, on_choice)
 	---@type WindowOpts | SelectOpts
 	local winopts = vim.tbl_extend("keep", opts, m.config.popup)
 	winopts.relative = opts["relative"] or "editor"
+	winopts.dismiss_keys = m.config.dismiss_keys
 	window.popup_window(content, setup_keymaps, winopts)
 end
 
