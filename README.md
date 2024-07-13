@@ -88,7 +88,7 @@ Using `lazy.nvim`
 - `code_action()`: Displays code actions in a popup window.
 - `range_code_action()`: Displays code actions in a popup window for a visual range.
 - `select(items: any, opts: SelectOpts, on_choice: fun(item: any))`: Displays a
-  selection prompt window.
+  selection prompt window for items.
 
 To integrate these functions with your LSP mappings, add the following to your configuration:
 
@@ -110,6 +110,28 @@ To integrate these functions with your LSP mappings, add the following to your c
 You can also use `require('fastaction').select` as a replacement for `vim.ui.select`.
 
 ![code-action.gif](./assets/code-action.gif)
+
+## How it works
+
+**fastaction.nvim** enhances the selection process by assigning key mappings to each
+option in the selection prompt. Here's how it achieves this:
+
+### Intelligent key mapping
+
+For each option, the plugin selects a key mapping based on the priority
+configuration. If no priority is set, it falls back to using the letters in the
+option's title. For example, if the option is "organize imports," the plugin
+first checks if the 'o' key is available. If 'o' is taken, it moves to the next
+letter, 'r,' and so on, until it finds an available key
+The code_action and range_code_action functions are essentially using the
+stylised prompt to choose from the code actions.
+
+### Streamlined Code Actions
+
+The code_action and range_code_action functions utilize this intelligent prompt
+to display and select from the available code actions efficiently. By leveraging
+this stylized prompt, FastAction.nvim ensures a smoother and more intuitive
+selection process, making your coding experience more fluid and enjoyable.
 
 ## Credit
 
