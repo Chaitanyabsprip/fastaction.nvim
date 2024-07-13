@@ -26,16 +26,27 @@
 ---@field kind? string
 
 ---@class FastActionConfig
----This configures options for the popup used by code action popup as well as
----the select popup.
+---Configures options for the code action and select popups.
 ---@field popup? PopupConfig
+---Specifies the priority and keys to map to patterns matching code actions.
 ---@field priority? table<string, ActionConfig[]>
+---Determines if the select popup should be registered as a `vim.ui.select` handler.
 ---@field register_ui_select? boolean
+---Keys to use to map options.
+---@field keys? fun(title): string | string
+---Keys to use to dismiss the popup.
+---@field dismiss_keys? string[]
 
 ---@class PopupConfig
+---Title of the popup.
 ---@field title? string
+---Specifies what the popup is relative to.
 ---@field relative? string
+---Style of the popup border. Can be "single", "double", "rounded", "thick", or
+---a table of strings in the format
+---{"top left", "top", "top right", "right", "bottom right", "bottom", "bottom left", "left"}.
 ---@field border? string | string[]
+---Whether to hide the cursor when the popup is shown.
 ---@field hide_cursor? boolean
+---Configures the highlights of different aspects of the popup.
 ---@field highlight? table<string, string>
----@field dismiss_keys? string[]
