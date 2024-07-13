@@ -32,8 +32,9 @@ Using `lazy.nvim`
 
 ```lua
 {
+  dismiss_keys = { "j", "k", "<c-c>", "q" },
+  keys = "qwertyuiopasdfghlzxcvbnm",
   popup = {
-    dismiss_keys = { "j", "k", "<c-c>", "q" },
     border = "rounded",
     hide_cursor = true,
     highlight = {
@@ -51,6 +52,7 @@ Using `lazy.nvim`
     --   { pattern = "extract widget", key ="e", order = 3 },
     -- },
   },
+ register_ui_select = false,
 }
 ```
 
@@ -62,8 +64,9 @@ code actions selection prompt. Lower number means higher up in the prompt.
 
 ```lua
 {
+  dismiss_keys = { "j", "k", "<c-c>", "q" },
+  keys = "asdfghlzxcvbnm",
   popup = {
-    dismiss_keys = { "j", "k", "<c-c>", "q" },
     border = "rounded",
     hide_cursor = true,
     highlight = {
