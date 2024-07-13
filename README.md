@@ -44,9 +44,18 @@ Using `lazy.nvim`
     },
     title = "Select one of:",
   },
-  priority = {},
+  priority = {
+    -- dart = {
+    --   { pattern = "organize import", key ="o", order = 1 },
+    --   { pattern = "extract method", key ="x", order = 2 },
+    --   { pattern = "extract widget", key ="e", order = 3 },
+    -- },
+  },
 }
 ```
+
+The order key in the priority table determines the position of that match in the
+code actions selection prompt. Lower number means higher up in the prompt.
 
 <details>
 <summary>Example Configuration</summary>
