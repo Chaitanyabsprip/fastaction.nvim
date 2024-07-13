@@ -46,17 +46,17 @@ function M.range_code_action()
 	return request_code_action(params)
 end
 
-function M.execute_command(command)
-	local offset_encoding = vim.lsp.get_client_by_id(command.client_id).offset_encoding
-	if command.edit or type(command.command) == "table" then
-		if command.edit then
-			vim.lsp.util.apply_workspace_edit(command.edit, offset_encoding)
+function M.execute_command(action)
+	local offset_encoding = vim.lsp.get_client_by_id(action.client_id).offset_encoding
+	if action.edit or type(action.command) == "table" then
+		if action.edit then
+			vim.lsp.util.apply_workspace_edit(action.edit, offset_encoding)
 		end
-		if type(command.command) == "table" then
-			vim.lsp.buf.execute_command(command.command)
+		if type(action.command) == "table" then
+			vim.lsp.buf.execute_command(action.command)
 		end
 	else
-		vim.lsp.buf.execute_command(command)
+		vim.lsp.buf.execute_command(action)
 	end
 end
 
