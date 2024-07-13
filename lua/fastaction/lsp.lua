@@ -71,9 +71,15 @@ end
 function M.execute_command(action)
 	local client = assert(vim.lsp.get_client_by_id(action.client_id))
 	local ctx = { bufnr = action.buffer }
-	local reg = client.dynamic_capabilities:get(m.textDocument_codeAction, { bufnr = action.buffer })
-	local supports_resolve = vim.tbl_get(reg or {}, "registerOptions", "resolveProvider")
-		or client.supports_method(m.codeAction_resolve)
+	---@type lsp.Registration?
+	local reg
+	---@type boolean
+	local supports_resolve
+	if action.data then
+		reg = client.dynamic_capabilities:get(m.textDocument_codeAction, { bufnr = action.buffer })
+		supports_resolve = vim.tbl_get(reg or {}, "registerOptions", "resolveProvider")
+			or client.supports_method(m.codeAction_resolve)
+	end
 	if not action.edit and client and supports_resolve then
 		client.request(m.codeAction_resolve, action, function(err, resolved_action)
 			if err then
