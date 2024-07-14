@@ -33,6 +33,7 @@ Using `lazy.nvim`
 ```lua
 {
   dismiss_keys = { "j", "k", "<c-c>", "q" },
+  override_function = nil,
   keys = "qwertyuiopasdfghlzxcvbnm",
   popup = {
     border = "rounded",
@@ -65,6 +66,10 @@ code actions selection prompt. Lower number means higher up in the prompt.
 ```lua
 {
   dismiss_keys = { "j", "k", "<c-c>", "q" },
+  override_function = function(params) -- to retain built-in style keymaps
+      params.invalid_keys[#params.invalid_keys + 1] = tostring(#params.invalid_keys + 1)
+      return { key = tostring(#params.invalid_keys), order = 0 }
+  end,
   keys = "asdfghlzxcvbnm",
   popup = {
     border = "rounded",
