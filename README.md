@@ -121,7 +121,7 @@ To integrate these functions with your LSP mappings, add the following to your c
 
 You can also use `require('fastaction').select` as a replacement for `vim.ui.select`.
 
-![code-action.gif](./assets/code-action.gif)
+![code-action](https://github.com/user-attachments/assets/18aadd07-73fe-4d62-885e-b5e4d3a4bfc4)
 
 ## How it works
 
