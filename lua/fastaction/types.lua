@@ -1,3 +1,9 @@
+---@class GetActionConfigParams
+---@field title string
+---@field invalid_keys string[]
+---@field override_function? fun(params: GetActionConfigParams): ActionConfig | nil
+---@field priorities? ActionConfig[]
+---@field valid_keys? string[]
 
 ---@class CodeAction: lsp.CodeAction
 ---@field client_id integer
@@ -36,6 +42,8 @@
 ---@field keys? string[] | string
 ---Keys to use to dismiss the popup.
 ---@field dismiss_keys? string[]
+---Override function to map keys to actions.
+---@field override_function? fun(params: GetActionConfigParams): ActionConfig | nil
 
 ---@class PopupConfig
 ---Title of the popup.

@@ -10,6 +10,7 @@ m.keys = {}
 m.defaults = {
 	dismiss_keys = { "j", "k", "<c-c>", "q" },
 	keys = "qwertyuiopasdfghlzxcvbnm",
+	override_function = nil,
 	popup = {
 		border = "rounded",
 		hide_cursor = true,
@@ -105,14 +106,18 @@ function M.select(items, opts, on_choice)
 
 	for i, item in ipairs(items) do
 		local option = { item = item, order = 0, name = opts.format_item(item) }
-
-		local match = keys.get_action_key(option.name, m.config.priority or {}, used_keys)
-		if match then
-			option.key = match.key
-			option.order = match.order
-		else
-			option.key = keys.get_key(option.name, used_keys, m.keys)
-		end
+		local match = assert(
+			keys.get_action_config({
+				title = option.name,
+				priorities = m.config.priority[vim.bo.filetype],
+				valid_keys = m.keys,
+				invalid_keys = used_keys,
+				override_function = m.config.override_function,
+			}),
+			'Failed to find a key to map to "' .. option.name .. '"'
+		)
+		option.key = match.key
+		option.order = match.order
 		options[i] = option
 		content[i] = string.format("[%s] %s", option.key, option.name)
 	end

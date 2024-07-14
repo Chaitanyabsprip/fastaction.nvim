@@ -1,41 +1,57 @@
 local M = {}
+local m = {}
 
---- this function will create a key from name
---- if a key_is exist on key_used then it will go to next character
---- in name
----@param name string
----@param invalid_keys string[]
----@param valid_keys string[]
----@return string?
-M.get_key = function(name, invalid_keys, valid_keys)
+---@param params GetActionConfigParams
+---@return ActionConfig | nil
+function m.get_action_config_from_title(params)
 	local index = 1
-	name = string.lower(name)
+	params.title = string.lower(params.title)
 	repeat
-		local char = name:sub(index, index)
-		if char:match("[a-z]") and not vim.tbl_contains(invalid_keys, char) and vim.tbl_contains(valid_keys, char) then
-			invalid_keys[#invalid_keys + 1] = char
-			return char
+		local char = params.title:sub(index, index)
+		if char:match("[a-z]") and not vim.tbl_contains(params.invalid_keys, char) then
+			return { key = char, order = 0 }
 		end
 		index = index + 1
-	until index >= #name
-
-	for _, k in pairs(valid_keys) do
-		if not vim.tbl_contains(invalid_keys, k) then
-			return k
-		end
-	end
-	return nil
+	until index >= #params.title
 end
 
----@param title string
----@param config table<string, ActionConfig[]>
----@param invalid_keys string[]
+---@param params GetActionConfigParams
 ---@return ActionConfig | nil
-function M.get_action_key(title, config, invalid_keys)
-	local priority = config[vim.bo.filetype] or {}
-	for _, value in ipairs(priority) do
-		if not vim.tbl_contains(invalid_keys, value.key) and title:lower():match(value.pattern) then
+function m.get_action_config_from_keys(params)
+	for _, k in pairs(params.valid_keys) do
+		if not vim.tbl_contains(params.invalid_keys, k) then
+			return { key = k, order = 0 }
+		end
+	end
+end
+
+---@param params GetActionConfigParams
+---@return ActionConfig | nil
+function m.get_action_config_from_priorities(params)
+	for _, value in ipairs(params.priorities) do
+		if not vim.tbl_contains(params.invalid_keys, value.key) and params.title:lower():match(value.pattern) then
 			return value
+		end
+	end
+end
+
+---@param params GetActionConfigParams
+---@return ActionConfig | nil
+function M.get_action_config(params)
+	local funcs = {
+		params.override_function,
+		m.get_action_config_from_priorities,
+		m.get_action_config_from_title,
+		m.get_action_config_from_keys,
+	}
+	params.override_function = nil
+	for _, f in ipairs(funcs) do
+		if f then
+			local a = f(params)
+			if a then
+				params.invalid_keys[#params.invalid_keys + 1] = a.key
+				return a
+			end
 		end
 	end
 end
