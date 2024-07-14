@@ -108,7 +108,7 @@ To integrate these functions with your LSP mappings, add the following to your c
     vim.keymap.set(
         'n',
         '<leader>a',
-        '<cmd>lua require("fastaction").code_action()<CR>'
+        '<cmd>lua require("fastaction").code_action()<CR>',
         { buffer = bufnr }
     )
     vim.keymap.set(
