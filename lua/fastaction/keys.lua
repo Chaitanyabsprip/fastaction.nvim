@@ -4,6 +4,9 @@ local m = {}
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_title(params)
+	if params.title == nil or params.title == "" then
+		return nil
+	end
 	local index = 1
 	params.title = string.lower(params.title)
 	repeat
@@ -18,6 +21,9 @@ end
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_keys(params)
+	if #params.valid_keys == nil or #params.valid_keys == 0 then
+		return nil
+	end
 	for _, k in pairs(params.valid_keys) do
 		if not vim.tbl_contains(params.invalid_keys, k) then
 			return { key = k, order = 0 }
@@ -28,6 +34,9 @@ end
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_priorities(params)
+	if params.priorities == nil or #params.priorities == 0 then
+		return nil
+	end
 	for _, value in ipairs(params.priorities) do
 		if not vim.tbl_contains(params.invalid_keys, value.key) and params.title:lower():match(value.pattern) then
 			return value

@@ -33,7 +33,7 @@ Using `lazy.nvim`
 ```lua
 {
   dismiss_keys = { "j", "k", "<c-c>", "q" },
-  override_function = nil,
+  override_function = function(_) end,
   keys = "qwertyuiopasdfghlzxcvbnm",
   popup = {
     border = "rounded",
