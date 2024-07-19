@@ -133,7 +133,7 @@ function M.select(items, opts, on_choice)
 
     ---@type WindowOpts | SelectOpts
     local winopts = vim.tbl_deep_extend('keep', opts, m.config.popup)
-    winopts.relative = opts['relative'] or 'editor'
+    winopts.relative = opts['relative'] or winopts.relative or 'editor'
     winopts.dismiss_keys = m.config.dismiss_keys
     window.popup_window(content, setup_keymaps, winopts)
 end
