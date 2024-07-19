@@ -132,7 +132,7 @@ function M.select(items, opts, on_choice)
     end
 
     ---@type WindowOpts | SelectOpts
-    local winopts = vim.tbl_extend('keep', opts, m.config.popup)
+    local winopts = vim.tbl_deep_extend('keep', opts, m.config.popup)
     winopts.relative = opts['relative'] or 'editor'
     winopts.dismiss_keys = m.config.dismiss_keys
     window.popup_window(content, setup_keymaps, winopts)
@@ -140,7 +140,7 @@ end
 
 ---@param opts FastActionConfig
 function M.setup(opts)
-    m.config = vim.tbl_extend('force', m.defaults, opts)
+    m.config = vim.tbl_deep_extend('force', m.defaults, opts)
     if m.config.register_ui_select then vim.ui.select = M.select end
     if type(m.config.keys) == 'table' then
         m.keys = m.config.keys
