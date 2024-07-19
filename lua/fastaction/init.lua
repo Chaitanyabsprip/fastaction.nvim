@@ -5,6 +5,7 @@ local window = require 'fastaction.window'
 local keys = require 'fastaction.keys'
 
 m.config = {}
+---@type string[]
 m.keys = {}
 ---@type FastActionConfig
 m.defaults = {
@@ -143,9 +144,9 @@ function M.setup(opts)
     m.config = vim.tbl_deep_extend('force', m.defaults, opts)
     if m.config.register_ui_select then vim.ui.select = M.select end
     if type(m.config.keys) == 'table' then
-        m.keys = m.config.keys
+        m.keys = m.config.keys --[=[@as string[]]=]
     elseif type(m.config.keys) == 'string' then
-        m.keys = vim.split(m.config.keys, '', { trimempty = true })
+        m.keys = vim.split(m.config.keys --[=[@as string]=], '', { trimempty = true })
     end
 end
 
