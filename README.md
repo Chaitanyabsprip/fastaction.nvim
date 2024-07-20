@@ -1,6 +1,6 @@
 # FastAction.nvim
 
-FastAction.nvim is a sleek, efficient plugin designed to optimize code actions
+FastAction.nvim is a sleek, efficiency plugin designed to optimize code actions
 in Neovim. By leveraging Neovim's built-in LSP capabilities, it offers a simple
 and intuitive interface that enhances your coding experience.
 
