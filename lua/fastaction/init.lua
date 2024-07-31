@@ -3,6 +3,7 @@ local m = {}
 local lsp = require 'fastaction.lsp'
 local window = require 'fastaction.window'
 local keys = require 'fastaction.keys'
+local util = require 'fastaction.util'
 
 m.config = {}
 ---@type string[]
@@ -94,22 +95,33 @@ end
 ---               `nil` if the user aborted the dialog.
 function M.select(items, opts, on_choice)
     opts.format_item = opts.format_item or tostring
-    local used_keys = {}
+    local used_keys = vim.tbl_extend('force', {}, m.config.dismiss_keys)
     ---@type {name: string, key: string, item: any, order: integer}[]}
     local options = {}
 
     ---@type string[]
     local content = {}
 
+    local chars = 1
+
+    local valid_keys = vim.tbl_filter(
+        function(key) return not vim.list_contains(m.config.dismiss_keys, key) end,
+        m.keys
+    )
+    while #valid_keys < #items do
+        chars = chars + 1
+        valid_keys = util.generatePermutations(valid_keys, chars)
+    end
     for i, item in ipairs(items) do
         local option = { item = item, order = 0, name = opts.format_item(item) }
         local match = assert(
             keys.get_action_config {
                 title = option.name,
                 priorities = m.config.priority[vim.bo.filetype],
-                valid_keys = m.keys,
+                valid_keys = valid_keys,
                 invalid_keys = used_keys,
                 override_function = m.config.override_function,
+                chars = chars,
             },
             'Failed to find a key to map to "' .. option.name .. '"'
         )
@@ -136,6 +148,7 @@ function M.select(items, opts, on_choice)
     local winopts = vim.tbl_deep_extend('keep', opts, m.config.popup)
     winopts.relative = opts['relative'] or winopts.relative or 'editor'
     winopts.dismiss_keys = m.config.dismiss_keys
+    winopts.chars = chars
     window.popup_window(content, setup_keymaps, winopts)
 end
 

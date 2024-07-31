@@ -6,13 +6,18 @@ local m = {}
 function m.get_action_config_from_title(params)
     if params.title == nil or params.title == '' then return nil end
     local index = 1
+    local increment = params.chars
     params.title = string.lower(params.title)
     repeat
-        local char = params.title:sub(index, index)
-        if char:match '[a-z]' and not vim.tbl_contains(params.invalid_keys, char) then
+        local char = params.title:sub(index, index + increment - 1)
+        if
+            char:match '[a-z]+'
+            and not vim.tbl_contains(params.invalid_keys, char)
+            and vim.tbl_contains(params.valid_keys, char)
+        then
             return { key = char, order = 0 }
         end
-        index = index + 1
+        index = index + increment
     until index >= #params.title
 end
 

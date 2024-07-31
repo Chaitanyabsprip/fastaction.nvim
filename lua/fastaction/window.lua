@@ -108,7 +108,7 @@ function M.popup_window(content, on_buf_create, opts)
 
     local line = 2 -- avoid the title and the divider i.e. start at line 2
     for _, _ in pairs(content) do
-        vim.api.nvim_buf_add_highlight(buffer, m.namespace, 'MoreMsg', line, 0, 4)
+        vim.api.nvim_buf_add_highlight(buffer, m.namespace, 'MoreMsg', line, 0, 3 + opts.chars)
         line = line + 1
     end
     vim.api.nvim_set_option_value('modifiable', false, { buf = buffer })
