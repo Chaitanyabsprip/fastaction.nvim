@@ -75,7 +75,6 @@ end
 ---               `nil` if the user aborted the dialog.
 function M.select(items, opts, on_choice)
     local conf = config.get()
-    vim.print(conf)
     opts.format_item = opts.format_item or tostring
     local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
     ---@type {name: string, key: string, item: any, order: integer}[]}
