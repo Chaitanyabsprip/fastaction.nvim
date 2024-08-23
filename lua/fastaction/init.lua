@@ -1,31 +1,12 @@
 local M = {}
 local m = {}
+local config = require 'fastaction.config'
+local keys = require 'fastaction.keys'
 local lsp = require 'fastaction.lsp'
 local window = require 'fastaction.window'
-local keys = require 'fastaction.keys'
 
-m.config = {}
 ---@type string[]
 m.keys = {}
----@type FastActionConfig
-m.defaults = {
-    dismiss_keys = { 'j', 'k', '<c-c>', 'q' },
-    keys = 'qwertyuiopasdfghlzxcvbnm',
-    override_function = function(_) end,
-    popup = {
-        border = 'rounded',
-        hide_cursor = true,
-        highlight = {
-            divider = 'FloatBorder',
-            key = 'MoreMsg',
-            title = 'Title',
-            window = 'NormalFloat',
-        },
-        title = 'Select one of:',
-    },
-    priority = {},
-    register_ui_select = false,
-}
 
 --- Show a selection prompt with the code actions available for the cursor
 --- position.
@@ -93,15 +74,15 @@ end
 ---               `idx` is the 1-based index of `item` within `items`.
 ---               `nil` if the user aborted the dialog.
 function M.select(items, opts, on_choice)
+    local conf = config.get()
+    vim.print(conf)
     opts.format_item = opts.format_item or tostring
-    local used_keys = vim.tbl_extend('force', {}, m.config.dismiss_keys)
+    local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
     ---@type {name: string, key: string, item: any, order: integer}[]}
     local options = {}
 
     ---@type string[]
     local content = {}
-
-    local chars = 1
 
     local valid_keys = keys.generate_keys(#items, m.keys)
     for i, item in ipairs(items) do
@@ -109,11 +90,10 @@ function M.select(items, opts, on_choice)
         local match = assert(
             keys.get_action_config {
                 title = option.name,
-                priorities = m.config.priority[vim.bo.filetype],
+                priorities = conf.priority[vim.bo.filetype],
                 valid_keys = valid_keys,
                 invalid_keys = used_keys,
-                override_function = m.config.override_function,
-                chars = chars,
+                override_function = conf.override_function,
             },
             'Failed to find a key to map to "' .. option.name .. '"'
         )
@@ -137,20 +117,21 @@ function M.select(items, opts, on_choice)
     end
 
     ---@type WindowOpts | SelectOpts
-    local winopts = vim.tbl_deep_extend('keep', opts, m.config.popup)
+    local winopts = vim.tbl_deep_extend('keep', opts, conf.popup)
     winopts.relative = opts['relative'] or winopts.relative or 'editor'
-    winopts.dismiss_keys = m.config.dismiss_keys
+    winopts.dismiss_keys = conf.dismiss_keys
     window.popup_window(content, setup_keymaps, winopts)
 end
 
 ---@param opts FastActionConfig
 function M.setup(opts)
-    m.config = vim.tbl_deep_extend('force', m.defaults, opts)
-    if m.config.register_ui_select then vim.ui.select = M.select end
-    if type(m.config.keys) == 'table' then
-        m.keys = m.config.keys --[=[@as string[]]=]
-    elseif type(m.config.keys) == 'string' then
-        m.keys = vim.split(m.config.keys --[=[@as string]=], '', { trimempty = true })
+    config.resolve(opts)
+    local conf = config.get()
+    if conf.register_ui_select then vim.ui.select = M.select end
+    if type(conf.keys) == 'table' then
+        m.keys = conf.keys --[=[@as string[]]=]
+    elseif type(conf.keys) == 'string' then
+        m.keys = vim.split(conf.keys --[=[@as string]=], '', { trimempty = true })
     end
 end
 
