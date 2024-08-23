@@ -94,22 +94,26 @@ end
 ---               `nil` if the user aborted the dialog.
 function M.select(items, opts, on_choice)
     opts.format_item = opts.format_item or tostring
-    local used_keys = {}
+    local used_keys = vim.tbl_extend('force', {}, m.config.dismiss_keys)
     ---@type {name: string, key: string, item: any, order: integer}[]}
     local options = {}
 
     ---@type string[]
     local content = {}
 
+    local chars = 1
+
+    local valid_keys = keys.generate_keys(#items, m.keys)
     for i, item in ipairs(items) do
         local option = { item = item, order = 0, name = opts.format_item(item) }
         local match = assert(
             keys.get_action_config {
                 title = option.name,
                 priorities = m.config.priority[vim.bo.filetype],
-                valid_keys = m.keys,
+                valid_keys = valid_keys,
                 invalid_keys = used_keys,
                 override_function = m.config.override_function,
+                chars = chars,
             },
             'Failed to find a key to map to "' .. option.name .. '"'
         )
