@@ -127,11 +127,7 @@ function M.setup(opts)
     config.resolve(opts)
     local conf = config.get()
     if conf.register_ui_select then vim.ui.select = M.select end
-    if type(conf.keys) == 'table' then
-        m.keys = conf.keys --[=[@as string[]]=]
-    elseif type(conf.keys) == 'string' then
-        m.keys = vim.split(conf.keys --[=[@as string]=], '', { trimempty = true })
-    end
+    m.keys = config.get_keys()
 end
 
 return M
