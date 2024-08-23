@@ -4,7 +4,6 @@
 ---@field override_function? fun(params: GetActionConfigParams): ActionConfig | nil
 ---@field priorities? ActionConfig[]
 ---@field valid_keys? string[]
----@field chars integer
 
 ---@class CodeAction: lsp.CodeAction
 ---@field client_id integer
@@ -26,13 +25,11 @@
 ---@field highlight table<string, string>
 ---@field relative? string
 ---@field hide_cursor? boolean
----@field chars integer
 
 ---@class SelectOpts
 ---@field prompt? string
 ---@field format_item? fun(item: any): string
 ---@field kind? string
----@field chars integer
 
 ---@class FastActionConfig
 ---Configures options for the code action and select popups.

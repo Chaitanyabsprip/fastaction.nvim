@@ -3,7 +3,6 @@ local m = {}
 local lsp = require 'fastaction.lsp'
 local window = require 'fastaction.window'
 local keys = require 'fastaction.keys'
-local util = require 'fastaction.util'
 
 m.config = {}
 ---@type string[]
@@ -104,14 +103,7 @@ function M.select(items, opts, on_choice)
 
     local chars = 1
 
-    local valid_keys = vim.tbl_filter(
-        function(key) return not vim.list_contains(m.config.dismiss_keys, key) end,
-        m.keys
-    )
-    while #valid_keys < #items do
-        chars = chars + 1
-        valid_keys = util.generatePermutations(valid_keys, chars)
-    end
+    local valid_keys = keys.generate_keys(#items, m.keys)
     for i, item in ipairs(items) do
         local option = { item = item, order = 0, name = opts.format_item(item) }
         local match = assert(
@@ -148,7 +140,6 @@ function M.select(items, opts, on_choice)
     local winopts = vim.tbl_deep_extend('keep', opts, m.config.popup)
     winopts.relative = opts['relative'] or winopts.relative or 'editor'
     winopts.dismiss_keys = m.config.dismiss_keys
-    winopts.chars = chars
     window.popup_window(content, setup_keymaps, winopts)
 end
 
