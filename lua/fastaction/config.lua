@@ -4,7 +4,7 @@ local m = {}
 ---@type FastActionConfig
 m.defaults = {
     dismiss_keys = { 'j', 'k', '<c-c>', 'q' },
-    keys = 'qwertyuiopasdfghlzxcvbnm',
+    keys = 'fjdkslaghrueiwocnxvbmztyqp',
     override_function = function(_) end,
     popup = {
         border = 'rounded',
