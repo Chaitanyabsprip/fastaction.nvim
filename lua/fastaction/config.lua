@@ -31,7 +31,7 @@ function M.get() return m.config end
 
 ---@param filetype string
 ---@return string[]
-function M.get_priority_keys(filetype)
+function M.get_prioritised(filetype)
     ---@type string[]
     local keys = {}
     for _, v in ipairs(m.config.priority[filetype]) do
@@ -41,7 +41,7 @@ function M.get_priority_keys(filetype)
 end
 
 ---@return string[]
-function M.get_keys()
+function M.get_configured()
     ---@type string[]
     local keys
     if type(m.config.keys) == 'table' then

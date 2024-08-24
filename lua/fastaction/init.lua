@@ -83,7 +83,7 @@ function M.select(items, opts, on_choice)
     ---@type string[]
     local content = {}
 
-    local valid_keys = keys.generate_keys(#items, m.keys)
+    local valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys)
     for i, item in ipairs(items) do
         local option = { item = item, order = 0, name = opts.format_item(item) }
         local match = assert(
@@ -127,7 +127,7 @@ function M.setup(opts)
     config.resolve(opts)
     local conf = config.get()
     if conf.register_ui_select then vim.ui.select = M.select end
-    m.keys = config.get_keys()
+    m.keys = config.get_configured()
 end
 
 return M
