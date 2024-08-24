@@ -17,7 +17,7 @@ m.defaults = {
         },
         title = 'Select one of:',
     },
-    priority = {},
+    priority = { default = {} },
     register_ui_select = false,
 }
 ---@type FastActionConfig
