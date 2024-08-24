@@ -112,7 +112,7 @@ end
 ---@param keys string[]
 ---@return string[]
 function M.filter_alpha_keys(keys)
-    local function is_alpha(k) return k:match '[a-z]+' end
+    local function is_alpha(k) return k:match '^[a-z]+$' end
     return vim.tbl_filter(is_alpha, keys)
 end
 
