@@ -89,7 +89,10 @@ function M.select(items, opts, on_choice)
         local match = assert(
             keys.get_action_config {
                 title = option.name,
-                priorities = vim.list_extend(conf.priority[vim.bo.filetype], conf.priority.default),
+                priorities = vim.list_extend(
+                    conf.priority[vim.bo.filetype] or {},
+                    conf.priority.default or {}
+                ),
                 valid_keys = valid_keys,
                 invalid_keys = used_keys,
                 override_function = conf.override_function,
