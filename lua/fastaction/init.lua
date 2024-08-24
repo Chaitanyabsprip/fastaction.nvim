@@ -102,7 +102,7 @@ function M.select(items, opts, on_choice)
         content[i] = string.format('[%s] %s', option.key, option.name)
     end
 
-    table.sort(options, function(a, b) return a.order < b.order end)
+    table.sort(options, function(a, b) return (a.order or 0) < (b.order or 0) end)
 
     ---@param buffer integer
     local function setup_keymaps(buffer)
@@ -127,7 +127,7 @@ function M.setup(opts)
     config.resolve(opts)
     local conf = config.get()
     if conf.register_ui_select then vim.ui.select = M.select end
-    m.keys = config.get_configured()
+    m.keys = config.get_configured_keys()
 end
 
 return M

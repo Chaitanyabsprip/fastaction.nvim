@@ -1,10 +1,11 @@
 local M = {}
 local m = {}
+local config = require 'fastaction.config'
 
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_title(params)
-    if params.title == nil or params.title == '' then return nil end
+    if params.title == nil or params.title == '' or #params.valid_keys == 0 then return nil end
     local index = 1
     local increment = #params.valid_keys[1]
     params.title = string.lower(params.title)
@@ -34,12 +35,12 @@ end
 ---@return ActionConfig | nil
 function m.get_action_config_from_priorities(params)
     if params.priorities == nil or #params.priorities == 0 then return nil end
-    for _, value in ipairs(params.priorities) do
+    for _, priority in ipairs(params.priorities) do
         if
-            not vim.tbl_contains(params.invalid_keys, value.key)
-            and params.title:lower():match(value.pattern)
+            not vim.tbl_contains(params.invalid_keys, priority.key)
+            and params.title:lower():match(priority.pattern)
         then
-            return value
+            return priority
         end
     end
 end
@@ -74,38 +75,77 @@ end
 ---Generate n-letter permutations given a list of letters
 ---@param letters string[]
 ---@param n integer
+---@param taken string[]
 ---@return string[]
-local function generate_permutations(letters, n)
+local function generate_permutations(letters, n, taken)
     local permutations = {}
+    taken = taken or {}
 
-    -- Helper function to generate permutations recursively
+    ---@param current string
+    ---@param remaining string[]
     local function permute(current, remaining)
         if #current == n then
             table.insert(permutations, current)
             return
         end
         for i = 1, #remaining do
-            ---@type string
-            local nextCurrent = current .. remaining[i]
-            local nextRemaining = {}
-            for j = 1, #remaining do
-                if i ~= j then table.insert(nextRemaining, remaining[j]) end
+            local nextLetter = remaining[i]
+            if not (string.len(current) == 0 and vim.tbl_contains(taken, nextLetter)) then
+                permute(
+                    current .. nextLetter,
+                    vim.list_extend({ unpack(remaining, 1, i - 1) }, { unpack(remaining, i + 1) })
+                )
             end
-            permute(nextCurrent, nextRemaining)
         end
     end
     permute('', letters)
     return permutations
 end
 
-function M.generate_keys(item_count, dismiss_keys)
-    local chars = 1
-
-    local valid_keys = vim.tbl_filter(filter_valid, dismiss_keys)
-    while #valid_keys < item_count do
-        chars = chars + 1
-        valid_keys = generate_permutations(valid_keys, chars)
+---@param n integer
+---@return integer
+local function factorial(n)
+    assert(n >= 0, 'n must be non-negative')
+    if n < 2 then return 1 end
+    local result = 1
+    for i = 2, n do
+        result = result * i
     end
+    return result
+end
+
+---@param k integer
+---@param p integer
+---@return integer
+local function permutations(k, p)
+    if p > k then return 0 end
+    return factorial(k) / factorial(k - p)
+end
+
+---@param allowed_key_count integer
+---@param item_count integer
+---@return integer
+local function calculate_min_keymap_length(allowed_key_count, item_count)
+    local length = 1
+    while permutations(allowed_key_count, length) < item_count do
+        length = length + 1
+    end
+    return length
+end
+
+---@param item_count integer
+---@param allowed_keys string[]
+---@param dismiss_keys string[]
+function M.generate_keys(item_count, allowed_keys, dismiss_keys)
+    dismiss_keys = M.filter_alpha_keys(dismiss_keys)
+    local chars = calculate_min_keymap_length(#allowed_keys, item_count)
+
+    ---@type string[]
+    local taken_keys = config.get_prioritised_keys(vim.bo.filetype)
+    local valid_keys = vim.tbl_filter(
+        filter_valid(dismiss_keys),
+        generate_permutations(allowed_keys, chars, taken_keys)
+    )
     return valid_keys
 end
 
