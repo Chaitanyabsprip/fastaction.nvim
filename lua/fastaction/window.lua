@@ -106,6 +106,8 @@ function M.popup_window(content, on_buf_create, opts)
     vim.api.nvim_buf_set_lines(buffer, 0, -1, true, content)
     vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.title, 0, 0, -1)
     vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.divider, 1, 0, -1)
+    vim.bo[buffer].filetype = 'fastaction_popup'
+    vim.bo[buffer].buftype = 'nofile'
 
     local line = 2 -- avoid the title and the divider i.e. start at line 2
     local chars = math.floor((#content - 2) / (26 - #keys.filter_alpha_keys(opts.dismiss_keys)))

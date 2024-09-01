@@ -20,6 +20,7 @@ m.defaults = {
     priority = { default = {} },
     register_ui_select = false,
 }
+
 ---@type FastActionConfig
 m.config = {}
 
