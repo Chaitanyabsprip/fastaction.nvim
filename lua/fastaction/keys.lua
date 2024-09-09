@@ -136,6 +136,7 @@ end
 ---@param item_count integer
 ---@param allowed_keys string[]
 ---@param dismiss_keys string[]
+---@return string[]
 function M.generate_keys(item_count, allowed_keys, dismiss_keys)
     dismiss_keys = M.filter_alpha_keys(dismiss_keys)
     local chars = calculate_min_keymap_length(#allowed_keys, item_count)

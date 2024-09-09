@@ -12,7 +12,7 @@
 ---@class ActionConfig
 ---@field pattern string
 ---@field key string
----@field order? integer
+---@field order integer
 
 ---@class WindowOpts
 ---@field title? string
