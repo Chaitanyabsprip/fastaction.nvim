@@ -8,7 +8,7 @@ function m.get_action_config_from_title(params)
     if params.title == nil or params.title == '' or #params.valid_keys == 0 then return nil end
     local index = 1
     local increment = #params.valid_keys[1]
-    params.title = string.lower(params.title)
+    params.title = string.lower(params.title):lower()
     repeat
         local char = params.title:sub(index, index + increment - 1)
         if
