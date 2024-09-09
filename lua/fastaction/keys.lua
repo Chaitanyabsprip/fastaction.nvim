@@ -2,6 +2,8 @@ local M = {}
 local m = {}
 local config = require 'fastaction.config'
 
+M.AUTO_ORDER = 10
+
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_title(params)
@@ -16,7 +18,7 @@ function m.get_action_config_from_title(params)
             and not vim.tbl_contains(params.invalid_keys, char)
             and vim.tbl_contains(params.valid_keys, char)
         then
-            return { key = char, order = 0 }
+            return { key = char, order = M.AUTO_ORDER }
         end
         index = index + increment
     until index >= #params.title
@@ -27,7 +29,9 @@ end
 function m.get_action_config_from_keys(params)
     if #params.valid_keys == nil or #params.valid_keys == 0 then return nil end
     for _, k in pairs(params.valid_keys) do
-        if not vim.tbl_contains(params.invalid_keys, k) then return { key = k, order = 0 } end
+        if not vim.tbl_contains(params.invalid_keys, k) then
+            return { key = k, order = M.AUTO_ORDER }
+        end
     end
 end
 
@@ -40,6 +44,7 @@ function m.get_action_config_from_priorities(params)
             not vim.tbl_contains(params.invalid_keys, priority.key)
             and params.title:lower():match(priority.pattern)
         then
+            priority.order = priority.order or M.AUTO_ORDER
             return priority
         end
     end
