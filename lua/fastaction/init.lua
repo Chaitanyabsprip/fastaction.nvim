@@ -75,6 +75,7 @@ end
 ---               `nil` if the user aborted the dialog.
 function M.select(items, opts, on_choice)
     local conf = config.get()
+    if #items > conf.fallback_threshold then return m.select(items, opts, on_choice) end
     opts.format_item = opts.format_item or tostring
     local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
     ---@type {name: string, key: string, item: any, order: integer}[]}
@@ -129,7 +130,10 @@ end
 function M.setup(opts)
     config.resolve(opts)
     local conf = config.get()
-    if conf.register_ui_select then vim.ui.select = M.select end
+    if conf.register_ui_select then
+        m.select = vim.ui.select
+        vim.ui.select = M.select
+    end
     m.keys = config.get_configured_keys()
 end
 

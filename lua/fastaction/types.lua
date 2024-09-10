@@ -44,6 +44,9 @@
 ---@field dismiss_keys? string[]
 ---Override function to map keys to actions.
 ---@field override_function? fun(params: GetActionConfigParams): ActionConfig | nil
+---Configures number of options after which fastaction must fallback on
+---`vim.ui.select`
+---@field fallback_threshold? integer
 
 ---@class PopupConfig
 ---Title of the popup.
