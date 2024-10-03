@@ -130,10 +130,8 @@ end
 function M.setup(opts)
     config.resolve(opts)
     local conf = config.get()
-    if conf.register_ui_select then
-        m.select = vim.ui.select
-        vim.ui.select = M.select
-    end
+    m.select = vim.ui.select
+    if conf.register_ui_select then vim.ui.select = M.select end
     m.keys = config.get_configured_keys()
 end
 
