@@ -50,12 +50,19 @@ function m.make_winopts(height, width, opts)
     local lines_below = vim.fn.winheight(0) - lines_above
     ---@type integer
     local maxcols = vim.api.nvim_get_option_value('columns', {})
+    ---@type integer
+    local maxlines = vim.api.nvim_get_option_value('lines', {})
 
     local isTopHalf = lines_above < lines_below
     local isLeftHalf = vim.fn.wincol() + width <= vim.api.nvim_get_option_value('columns', {})
     local col = (opts.x_offset or 0) + (isLeftHalf and 1 or 0)
     local row = (opts.y_offset or 0) + (isTopHalf and 1 or -1)
-    if opts.relative == 'editor' then
+    if (opts.relative == 'editor' or opts.relative == 'win') and opts.centered then
+        ---@type integer
+        col = vim.fn.floor((maxcols - width) / 2)
+        ---@type integer
+        row = vim.fn.floor((maxlines - height) / 2)
+    elseif opts.relative == 'editor' then
         col = maxcols - (opts.x_offset or 0)
         row = opts.y_offset or 0
     end
