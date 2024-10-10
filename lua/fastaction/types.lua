@@ -24,6 +24,7 @@
 ---@field dismiss_keys? string[]
 ---@field highlight table<string, string>
 ---@field relative? string
+---@field centered? boolean
 ---@field hide_cursor? boolean
 
 ---@class SelectOpts
