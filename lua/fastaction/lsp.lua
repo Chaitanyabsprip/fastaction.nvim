@@ -96,4 +96,33 @@ function M.execute_command(action)
     end
 end
 
+---@param priority Priority
+---@param check_lsp? boolean
+---@return ActionConfig[]
+function M.get_priorities(priority, check_lsp)
+    if not priority then return {} end
+    local ft_priorities = priority[vim.bo.filetype]
+    vim.list_extend(ft_priorities or {}, priority.default or {})
+    if not check_lsp then return ft_priorities end
+    local clients = vim.lsp.get_clients { bufnr = 0 }
+    local lsps = m.map(clients, function(client) return client.name end)
+    local lsp_priorities = m.map(lsps, function(p) return priority[p] end)
+    return vim.list_extend(ft_priorities or {}, lsp_priorities or {})
+end
+
+---@generic K, V, R
+---@param tbl table<K, V>
+---@param f fun(value: V): R
+---@return table<K, R>
+function m.map(tbl, f)
+    if not tbl then return {} end
+    local t = {}
+    ---@diagnostic disable-next-line: no-unknown
+    for k, v in pairs(tbl) do
+        ---@diagnostic disable-next-line: no-unknown
+        t[k] = f(v)
+    end
+    return t
+end
+
 return M

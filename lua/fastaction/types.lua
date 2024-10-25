@@ -35,7 +35,7 @@
 ---Configures options for the code action and select popups.
 ---@field popup? PopupConfig
 ---Specifies the priority and keys to map to patterns matching code actions.
----@field priority? table<string, ActionConfig[]>
+---@field priority? Priority
 ---Determines if the select popup should be registered as a `vim.ui.select` handler.
 ---@field register_ui_select? boolean
 ---Keys to use to map options.
@@ -47,6 +47,8 @@
 ---Configures number of options after which fastaction must fallback on
 ---`vim.ui.select`
 ---@field fallback_threshold? integer
+
+---@alias Priority table<string, ActionConfig[]>
 
 ---@class PopupConfig
 ---Title of the popup.
