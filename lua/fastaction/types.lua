@@ -48,8 +48,6 @@
 ---`vim.ui.select`
 ---@field fallback_threshold? integer
 
----@alias Priority table<string, ActionConfig[]>
-
 ---@class PopupConfig
 ---Title of the popup.
 ---@field title? string
@@ -63,3 +61,9 @@
 ---@field hide_cursor? boolean
 ---Configures the highlights of different aspects of the popup.
 ---@field highlight? table<string, string>
+---Configures the horizontal position of the popup with respect to the relative value.
+---@field x_offset? integer | fun(width: integer): integer
+---Configures the vertical position of the popup with respect to the relative value.
+---@field y_offset? integer | fun(height: integer): integer
+
+---@alias Priority table<string, ActionConfig[]>

@@ -54,11 +54,11 @@ end
 ---@return ActionConfig | nil
 function M.get_action_config(params)
     local funcs = {
-        params.override_function,
         m.get_action_config_from_priorities,
         m.get_action_config_from_title,
         m.get_action_config_from_keys,
     }
+    if params.override_function then table.insert(funcs, 1, params.override_function) end
     params.override_function = nil
     for _, f in ipairs(funcs) do
         if f then

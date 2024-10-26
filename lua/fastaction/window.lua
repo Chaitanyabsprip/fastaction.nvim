@@ -41,23 +41,20 @@ end
 function m.make_winopts(height, width, opts)
     vim.validate { opts = { opts, 't', true } }
     opts = opts or {}
-    vim.validate {
-        ['opts.x_offset'] = { opts.x_offset, 'n', true },
-        ['opts.y_offset'] = { opts.y_offset, 'n', true },
-    }
-
     local lines_above = vim.fn.winline() - 1
     local lines_below = vim.fn.winheight(0) - lines_above
     ---@type integer
     local maxcols = vim.api.nvim_get_option_value('columns', {})
 
     local isTopHalf = lines_above < lines_below
-    local isLeftHalf = vim.fn.wincol() + width <= vim.api.nvim_get_option_value('columns', {})
-    local col = (opts.x_offset or 0) + (isLeftHalf and 1 or 0)
-    local row = (opts.y_offset or 0) + (isTopHalf and 1 or -1)
+    local isLeftHalf = vim.fn.wincol() + width <= maxcols
+
+    local x_offset, y_offset = m.get_offsets(opts.x_offset, opts.y_offset, opts.relative)
+    local col = (x_offset or 0) + (isLeftHalf and 1 or 0)
+    local row = (y_offset or 0) + (isTopHalf and 1 or -1)
     if opts.relative == 'editor' then
-        col = maxcols - (opts.x_offset or 0)
-        row = opts.y_offset or 0
+        col = maxcols - (x_offset or 0)
+        row = y_offset or 0
     end
     return {
         col = col,
@@ -67,6 +64,32 @@ function m.make_winopts(height, width, opts)
         style = 'minimal',
         width = width,
     }
+end
+
+---@param x_offset integer | fun(width: integer): integer
+---@param y_offset integer | fun(height: integer): integer
+---@param relative 'editor' | 'cursor' | 'win' | 'mouse'
+---@return integer, integer
+function m.get_offsets(x_offset, y_offset, relative)
+    vim.validate {
+        ['opts.x_offset'] = { x_offset, { 'n', 'f' }, true },
+        ['opts.y_offset'] = { y_offset, { 'n', 'f' }, true },
+    }
+    ---@type integer, integer
+    local width, height
+    if relative == 'editor' then
+        width = vim.api.nvim_get_option_value('columns', {})
+        height = vim.api.nvim_get_option_value('lines', {})
+    elseif relative == 'win' then
+        width = vim.api.nvim_win_get_width(0)
+        height = vim.api.nvim_win_get_height(0)
+    else
+        error 'invalid arguments'
+    end
+
+    if type(x_offset) == 'function' then x_offset = x_offset(width) end
+    if type(y_offset) == 'function' then y_offset = y_offset(height) end
+    return x_offset, y_offset
 end
 
 ---@param content string[]
