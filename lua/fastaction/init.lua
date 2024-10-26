@@ -90,7 +90,7 @@ function M.select(items, opts, on_choice)
         local match = assert(
             keys.get_action_config {
                 title = option.name,
-                priorities = lsp.get_priorities(conf.priority),
+                priorities = lsp.get_priorities(conf.priority, true),
                 valid_keys = valid_keys,
                 invalid_keys = used_keys,
                 override_function = conf.override_function,
