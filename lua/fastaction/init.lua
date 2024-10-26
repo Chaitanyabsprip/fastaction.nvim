@@ -89,6 +89,7 @@ function M.select(items, opts, on_choice)
         local option = { item = item, order = 0, name = opts.format_item(item) }
         local match = assert(
             keys.get_action_config {
+                kind = opts.kind,
                 title = option.name,
                 priorities = lsp.get_priorities(conf.priority, true),
                 valid_keys = valid_keys,
