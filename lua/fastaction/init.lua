@@ -18,7 +18,8 @@ function M.code_action()
     M.select(code_actions, {
         prompt = 'Code Actions:',
         format_item = function(item) return item.title end,
-        relative = 'cursor',
+        relative = config.get().popup.relative or 'cursor',
+        kind = 'codeaction',
     }, lsp.execute_command)
 end
 
@@ -32,7 +33,8 @@ function M.range_code_action()
     local opts = {
         prompt = 'Code Actions:',
         format_item = function(item) return item.title end,
-        relative = 'cursor',
+        relative = config.get().popup.relative or 'cursor',
+        kind = 'codeaction',
     }
     M.select(code_actions, opts, lsp.execute_command)
 end
