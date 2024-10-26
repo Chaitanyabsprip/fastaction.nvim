@@ -69,7 +69,7 @@ end
 ---@param x_offset integer | fun(width: integer): integer
 ---@param y_offset integer | fun(height: integer): integer
 ---@param relative 'editor' | 'cursor' | 'win' | 'mouse'
----@return integer, integer
+---@return integer | nil, integer | nil
 function m.get_offsets(x_offset, y_offset, relative)
     vim.validate {
         ['opts.x_offset'] = { x_offset, { 'n', 'f' }, true },
@@ -84,7 +84,7 @@ function m.get_offsets(x_offset, y_offset, relative)
         width = vim.api.nvim_win_get_width(0)
         height = vim.api.nvim_win_get_height(0)
     else
-        error 'invalid arguments'
+        return nil, nil
     end
 
     if type(x_offset) == 'function' then x_offset = x_offset(width) end
