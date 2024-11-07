@@ -62,7 +62,8 @@ function m.apply_action(action, client, ctx)
     local a_cmd = action.command
     if a_cmd then
         local command = type(a_cmd) == 'table' and a_cmd or action --[[@as lsp.Command]]
-        client:_exec_cmd(command, ctx)
+        local exec_cmd = client.exec_cmd or client._exec_cmd
+        exec_cmd(client, command, ctx)
     end
 end
 
