@@ -2,11 +2,16 @@ local M = {}
 local m = {}
 
 m.textDocument_codeAction = 'textDocument/codeAction'
+
+--@type vim.lsp.Client
 m.codeAction_resolve = 'codeAction/resolve'
+
+local buffer = vim.api.nvim_get_current_buf()
+local client = vim.lsp.get_clients({ bufnr = buffer })[1]
+local offset_encoding = client and client.offset_encoding or 'utf-16'
 
 ---@return CodeAction[] | nil
 local request_code_action = function(params)
-    local buffer = vim.api.nvim_get_current_buf()
     ---@type table<integer, {result: lsp.CodeAction[], error: lsp.ResponseError? }>?, string?
     local results_lsp, err =
         vim.lsp.buf_request_sync(buffer, 'textDocument/codeAction', params, 10000)
@@ -17,7 +22,6 @@ local request_code_action = function(params)
     local commands = {}
     for client_id, response in pairs(results_lsp) do
         if response.result then
-            local client = vim.lsp.get_client_by_id(client_id)
             for _, result in pairs(response.result) do
                 ---@class lsp.CodeAction
                 ---@field client_id integer
@@ -38,7 +42,8 @@ function M.code_action()
     M.bufnr = vim.api.nvim_get_current_buf()
     local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
     local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
-    local params = vim.lsp.util.make_range_params()
+    ---@class lsp.CodeACtionParams
+    local params = vim.lsp.util.make_range_params(0, offset_encoding)
     params.context = context
     return request_code_action(params)
 end
@@ -47,7 +52,8 @@ function M.range_code_action()
     M.bufnr = vim.api.nvim_get_current_buf()
     local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
     local context = { diagnostics = vim.diagnostic.get(M.bufnr, { lnum = lnum }) }
-    local params = vim.lsp.util.make_given_range_params()
+    ---@class lsp.CodeACtionParams
+    local params = vim.lsp.util.make_given_range_params(nil, nil, 0, offset_encoding)
     params.context = context
     return request_code_action(params)
 end
