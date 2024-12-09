@@ -67,4 +67,9 @@
 ---Configures the vertical position of the popup with respect to the relative value.
 ---@field y_offset? integer | fun(height: integer): integer
 
+---@class lsp.CodeACtionParams
+---@field context lsp.CodeActionContext
+---@field range lsp.Range
+---@field textDocument lsp.TextDocumentIdentifier
+
 ---@alias Priority table<string, ActionConfig[]>
