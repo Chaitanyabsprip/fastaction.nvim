@@ -123,7 +123,6 @@ function M.setup(opts)
                 pattern = '*',
                 callback = function()
                     if not vim.g.fastaction_code_action then return end
-                    print 'hello'
                     vim.ui.select = m.select_cb
                     vim.g.fastaction_code_action = false
                 end,
