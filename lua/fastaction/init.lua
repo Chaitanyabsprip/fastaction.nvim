@@ -10,33 +10,15 @@ m.keys = {}
 
 --- Show a selection prompt with the code actions available for the cursor
 --- position.
-function M.code_action()
-    local code_actions = lsp.code_action()
-    if code_actions == nil or vim.tbl_isempty(code_actions) then
-        return vim.notify('No code actions available', vim.log.levels.INFO)
+function M.code_action(...)
+    m.select_cb = vim.ui.select
+    vim.g.fastaction_code_action = true
+    local code_action_select = function(items, opts, on_choice)
+        opts['relative'] = config.get().popup.relative or 'cursor'
+        M.select(items, opts, on_choice)
     end
-    M.select(code_actions, {
-        prompt = 'Code Actions:',
-        format_item = function(item) return item.title end,
-        relative = config.get().popup.relative or 'cursor',
-        kind = 'codeaction',
-    }, lsp.execute_command)
-end
-
---- Show a selection prompt with the code actions available for the visual
---- selection range.
-function M.range_code_action()
-    local code_actions = lsp.range_code_action()
-    if code_actions == nil or vim.tbl_isempty(code_actions) then
-        return vim.notify('No code actions available', vim.log.levels.WARN)
-    end
-    local opts = {
-        prompt = 'Code Actions:',
-        format_item = function(item) return item.title end,
-        relative = config.get().popup.relative or 'cursor',
-        kind = 'codeaction',
-    }
-    M.select(code_actions, opts, lsp.execute_command)
+    vim.ui.select = code_action_select
+    vim.lsp.buf.code_action(...)
 end
 
 --- Prompts the user to pick from a list of items, allowing arbitrary (potentially asynchronous)
@@ -93,7 +75,7 @@ function M.select(items, opts, on_choice)
             keys.get_action_config {
                 kind = opts.kind,
                 title = option.name,
-                priorities = lsp.get_priorities(conf.priority, true),
+                priorities = config.get_priorities(conf.priority, true),
                 valid_keys = valid_keys,
                 invalid_keys = used_keys,
                 override_function = conf.override_function,
@@ -133,6 +115,22 @@ function M.setup(opts)
     m.select = vim.ui.select
     if conf.register_ui_select then vim.ui.select = M.select end
     m.keys = config.get_configured_keys()
+    vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'fastaction_popup',
+        callback = function()
+            vim.api.nvim_create_autocmd('WinLeave', {
+                group = vim.api.nvim_create_augroup('fastaction_close_popup', {}),
+                once = true,
+                pattern = '*',
+                callback = function()
+                    if not vim.g.fastaction_code_action then return end
+                    print 'hello'
+                    vim.ui.select = m.select_cb
+                    vim.g.fastaction_code_action = false
+                end,
+            })
+        end,
+    })
 end
 
 return M
