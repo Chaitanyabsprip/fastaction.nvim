@@ -12,7 +12,8 @@ and intuitive interface that enhances your coding experience.
 - **Priority Handling**: Customize the display order of actions based on
   priority, ensuring the most used actions are always visible on top.
 - **Flexible Selection**: Extendable selection prompt that can replace Neovim's
-  built-in `vim.ui.select`, providing more versatility in how you interact with lists
+  built-in `vim.ui.select`, providing more versatility in how you
+  interact with lists
 
 ## Installation
 
@@ -57,8 +58,9 @@ Using `lazy.nvim`
 }
 ```
 
-The order key in the priority table determines the position of that match in the
-code actions selection prompt. Lower number means higher up in the prompt.
+The order key in the priority table determines the position of that
+match in the code actions selection prompt. Lower number means higher up
+in the prompt.
 
 <details>
 <summary>Example Configuration</summary>
@@ -103,23 +105,17 @@ code actions selection prompt. Lower number means higher up in the prompt.
 **fastaction.nvim** exposes three function apart from setup.
 
 - `code_action()`: Displays code actions in a popup window.
-- `range_code_action()`: Displays code actions in a popup window for a visual range.
 - `select(items: any, opts: SelectOpts, on_choice: fun(item: any))`: Displays a
   selection prompt window for items.
 
-To integrate these functions with your LSP mappings, add the following to your configuration:
+To integrate these functions with your LSP mappings, add the following
+to your configuration:
 
 ```lua
     vim.keymap.set(
-        'n',
+        { 'n', 'v' },
         '<leader>a',
         '<cmd>lua require("fastaction").code_action()<CR>',
-        { buffer = bufnr }
-    )
-    vim.keymap.set(
-        'v',
-        '<leader>a',
-        "<esc><cmd>lua require('fastaction').range_code_action()<CR>",
         { buffer = bufnr }
     )
 ```
@@ -136,19 +132,20 @@ option in the selection prompt. Here's how it achieves this:
 ### Intelligent key mapping
 
 For each option, the plugin selects a key mapping based on the priority
-configuration. If no priority is set, it falls back to using the letters in the
-option's title. For example, if the option is "organize imports," the plugin
-first checks if the 'o' key is available. If 'o' is taken, it moves to the next
-letter, 'r,' and so on, until it finds an available key
-The code_action and range_code_action functions are essentially using the
-stylised prompt to choose from the code actions.
+configuration. If no priority is set, it falls back to using the letters
+in the option's title. For example, if the option is "organize imports,"
+the plugin first checks if the 'o' key is available. If 'o' is taken, it
+moves to the next letter, 'r,' and so on, until it finds an available
+key The code_action function are essentially using the stylized prompt
+to choose from the available code actions.
 
 ### Streamlined Code Actions
 
-The code_action and range_code_action functions utilize this intelligent prompt
-to display and select from the available code actions efficiently. By leveraging
-this stylized prompt, FastAction.nvim ensures a smoother and more intuitive
-selection process, making your coding experience more fluid and enjoyable.
+The code_action function utilize this intelligent prompt to display and
+select from the available code actions efficiently. By leveraging this
+stylized prompt, FastAction.nvim ensures a smoother and more intuitive
+selection process, making your coding experience more fluid and
+enjoyable.
 
 ## Credit
 

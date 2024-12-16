@@ -2,7 +2,6 @@ local M = {}
 local m = {}
 local config = require 'fastaction.config'
 local keys = require 'fastaction.keys'
-local lsp = require 'fastaction.lsp'
 local window = require 'fastaction.window'
 
 ---@type string[]
