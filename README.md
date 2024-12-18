@@ -113,7 +113,7 @@ to your configuration:
 
 ```lua
     vim.keymap.set(
-        { 'n', 'v' },
+        { 'n', 'x' },
         '<leader>a',
         '<cmd>lua require("fastaction").code_action()<CR>',
         { buffer = bufnr }
