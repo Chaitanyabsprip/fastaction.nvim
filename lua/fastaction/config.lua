@@ -20,6 +20,7 @@ m.defaults = {
     priority = { default = {} },
     register_ui_select = false,
     fallback_threshold = 26,
+    format_right_section = nil,
 }
 
 ---@type FastActionConfig
