@@ -48,6 +48,7 @@
 ---Configures number of options after which fastaction must fallback on
 ---`vim.ui.select`
 ---@field fallback_threshold? integer
+---@field format_right_section? fun(item: LspCodeActionItem): string
 
 ---@class PopupConfig
 ---Title of the popup.

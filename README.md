@@ -55,6 +55,7 @@ Using `lazy.nvim`
     -- },
   },
  register_ui_select = false,
+ format_right_section = nil
 }
 ```
 

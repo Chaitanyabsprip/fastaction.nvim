@@ -61,15 +61,25 @@ function M.select(items, opts, on_choice)
     if #items > conf.fallback_threshold then return m.select(items, opts, on_choice) end
     opts.format_item = opts.format_item or tostring
     local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
-    ---@type {name: string, key: string, item: any, order: integer}[]}
+    ---@alias Option {name: string, key: string, item: any, order: integer, right_section: string, char_count: integer}
+    ---@type Option[]
     local options = {}
 
     ---@type string[]
     local content = {}
 
     local valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys)
+
+    local largest_char_count = 0
+
     for i, item in ipairs(items) do
-        local option = { item = item, order = 0, name = opts.format_item(item) }
+        ---@type Option
+        local option = {
+            item = item,
+            order = 0,
+            name = opts.format_item(item),
+            right_section = conf.format_right_section and conf.format_right_section(item) or '',
+        }
         local match = assert(
             keys.get_action_config {
                 kind = opts.kind,
@@ -81,10 +91,28 @@ function M.select(items, opts, on_choice)
             },
             'Failed to find a key to map to "' .. option.name .. '"'
         )
+
         option.key = match.key
         option.order = match.order
         options[i] = option
-        content[i] = string.format('[%s] %s', option.key, option.name)
+
+        local char_count = #option.name + #option.right_section
+
+        option.char_count = char_count
+
+        if char_count > largest_char_count then largest_char_count = char_count end
+    end
+
+    for i, option in ipairs(options) do
+        local spacing = largest_char_count + 1 - option.char_count
+
+        content[i] = string.format(
+            '[%s] %s%s%s',
+            option.key,
+            option.name,
+            string.rep(' ', spacing),
+            option.right_section
+        )
     end
 
     table.sort(options, function(a, b) return (a.order or 0) < (b.order or 0) end)
