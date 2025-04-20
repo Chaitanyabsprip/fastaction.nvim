@@ -120,20 +120,28 @@ function M.popup_window(content, on_buf_create, opts)
     -- Add right padding of 1 each.
     width = width + 1
     opts.divider = opts.divider or '─'
-    content = vim.list_extend(
-        { ' ' .. (opts.prompt or opts.title), string.rep(opts.divider, width) },
-        content
-    )
+    if opts.title ~= false then
+        content = vim.list_extend(
+            { ' ' .. (opts.prompt or opts.title), string.rep(opts.divider, width) },
+            content
+        )
+    end
     local height = #content
 
     local buffer = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(buffer, 0, -1, true, content)
-    vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.title, 0, 0, -1)
-    vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.divider, 1, 0, -1)
+    if opts.title ~= false then
+        vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.title, 0, 0, -1)
+        vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.divider, 1, 0, -1)
+    end
     vim.bo[buffer].filetype = 'fastaction_popup'
     vim.bo[buffer].buftype = 'nofile'
 
-    local line = 2 -- avoid the title and the divider i.e. start at line 2
+    -- avoid the title and the divider i.e. start at line 2
+    local title_offset = opts.title == false and 0 or 2
+    local line = title_offset
+    local chars =
+        math.floor((#content - title_offset) / (26 - #keys.filter_alpha_keys(opts.dismiss_keys)))
     local brackets = config.get().brackets or { '[', ']' }
     local more_msg_indent =
         -- border
@@ -144,7 +152,6 @@ function M.popup_window(content, on_buf_create, opts)
         + 1
         -- right bracket
         + #brackets[2]
-    local chars = math.floor((#content - 2) / (26 - #keys.filter_alpha_keys(opts.dismiss_keys)))
     for _, _ in pairs(content) do
         vim.api.nvim_buf_add_highlight(
             buffer,
