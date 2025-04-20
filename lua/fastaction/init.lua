@@ -103,12 +103,16 @@ function M.select(items, opts, on_choice)
         if char_count > largest_char_count then largest_char_count = char_count end
     end
 
+    local brackets = config.get().brackets or { '[', ']' }
+
     for i, option in ipairs(options) do
         local spacing = largest_char_count + 1 - option.char_count
 
         content[i] = string.format(
-            '[%s] %s%s%s',
+            '%s%s%s %s%s%s',
+            brackets[1],
             option.key,
+            brackets[2],
             option.name,
             string.rep(' ', spacing),
             option.right_section
