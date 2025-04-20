@@ -3,6 +3,7 @@ local m = {}
 
 ---@type FastActionConfig
 m.defaults = {
+    brackets = { '[', ']' },
     dismiss_keys = { 'j', 'k', '<c-c>', 'q' },
     keys = 'fjdkslaghrueiwocnxvbmztyqp',
     override_function = function(_) end,

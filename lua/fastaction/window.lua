@@ -1,4 +1,5 @@
 local M = {}
+local config = require 'fastaction.config'
 local keys = require 'fastaction.keys'
 local m = {}
 
@@ -133,9 +134,26 @@ function M.popup_window(content, on_buf_create, opts)
     vim.bo[buffer].buftype = 'nofile'
 
     local line = 2 -- avoid the title and the divider i.e. start at line 2
+    local brackets = config.get().brackets or { '[', ']' }
+    local more_msg_indent =
+        -- border
+        1
+        -- left bracket
+        + #brackets[1]
+        -- key
+        + 1
+        -- right bracket
+        + #brackets[2]
     local chars = math.floor((#content - 2) / (26 - #keys.filter_alpha_keys(opts.dismiss_keys)))
     for _, _ in pairs(content) do
-        vim.api.nvim_buf_add_highlight(buffer, m.namespace, 'MoreMsg', line, 0, 3 + chars)
+        vim.api.nvim_buf_add_highlight(
+            buffer,
+            m.namespace,
+            'MoreMsg',
+            line,
+            0,
+            more_msg_indent + chars
+        )
         line = line + 1
     end
     vim.api.nvim_set_option_value('modifiable', false, { buf = buffer })
