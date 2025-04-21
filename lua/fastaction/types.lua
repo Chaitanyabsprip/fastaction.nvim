@@ -16,7 +16,7 @@
 ---@field order integer
 
 ---@class WindowOpts
----@field title? string
+---@field title? string | boolean
 ---@field divider? string
 ---@field border? string | table
 ---@field window_hl? string
@@ -53,7 +53,7 @@
 
 ---@class PopupConfig
 ---Title of the popup.
----@field title? string
+---@field title? string | boolean
 ---Specifies what the popup is relative to.
 ---@field relative? string
 ---Style of the popup border. Can be "single", "double", "rounded", "thick", or

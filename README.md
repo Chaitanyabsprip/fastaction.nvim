@@ -83,7 +83,7 @@ in the prompt.
       title = "Title",
       window = "NormalFloat",
     },
-    title = "Select one of:",
+    title = "Select one of:", -- or false to disable title
   },
   priority = {
     dart = {
