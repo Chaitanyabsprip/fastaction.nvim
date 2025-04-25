@@ -13,6 +13,8 @@ m.defaults = {
         highlight = {
             divider = 'FloatBorder',
             key = 'MoreMsg',
+            action = 'MoreMsg',
+            source = 'Comment',
             title = 'Title',
             window = 'NormalFloat',
         },

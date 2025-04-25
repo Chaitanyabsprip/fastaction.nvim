@@ -93,7 +93,7 @@ function m.get_offsets(x_offset, y_offset, relative)
     return x_offset, y_offset
 end
 
----@param content string[]
+---@param content PopupLine[]
 ---@param on_buf_create fun(buffer: integer) | nil
 ---@param opts WindowOpts | SelectOpts
 ---@return integer, integer
@@ -105,65 +105,81 @@ function M.popup_window(content, on_buf_create, opts)
     }
     opts = opts or {}
     if opts.border == 'thick' then opts.border = m.window_border_chars_thick end
-    ---@type string[]
-    content = vim.split(table.concat(content, '\n'), '\n', { trimempty = true })
+
+    ---@param line PopupLine
+    ---@return string
+    local function assemble_line(line)
+        local combined = ''
+        for _, part in ipairs(line) do
+            combined = combined .. part.text
+        end
+        return combined
+    end
 
     local width = 0
     for i, line in ipairs(content) do
         -- Clean up the input and add left pad.
-        ---@type string
-        line = ' ' .. line:gsub('\r', '')
-        local line_width = vim.fn.strdisplaywidth(line)
+        table.insert(line, 1, { text = ' ' })
+        local line_str = assemble_line(line)
+        local line_width = vim.fn.strdisplaywidth(line_str)
         width = math.max(line_width, width)
         content[i] = line
     end
+
     -- Add right padding of 1 each.
     width = width + 1
     opts.divider = opts.divider or '─'
     if opts.title ~= false then
-        content = vim.list_extend(
-            { ' ' .. (opts.prompt or opts.title), string.rep(opts.divider, width) },
-            content
-        )
+        ---@type PopupLine[]
+        content = vim.list_extend({
+            ---@type PopupLine
+            {
+                { text = ' ' .. (opts.prompt or opts.title), highlight = opts.highlight.title },
+            },
+            ---@type PopupLine
+            {
+                { text = string.rep(opts.divider, width), highlight = opts.highlight.divider },
+            },
+        }, content)
     end
-    local height = #content
+
+    ---@param lines PopupLine[]
+    ---@return string[]
+    local function assemble_content(lines)
+        local combined = {}
+        for i, line in ipairs(lines) do
+            combined[i] = assemble_line(line)
+        end
+        return combined
+    end
+
+    ---@type string[]
+    local assembled_content = assemble_content(content)
 
     local buffer = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(buffer, 0, -1, true, content)
-    if opts.title ~= false then
-        vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.title, 0, 0, -1)
-        vim.api.nvim_buf_add_highlight(buffer, m.namespace, opts.highlight.divider, 1, 0, -1)
-    end
+    vim.api.nvim_buf_set_lines(buffer, 0, -1, true, assembled_content)
     vim.bo[buffer].filetype = 'fastaction_popup'
     vim.bo[buffer].buftype = 'nofile'
 
-    -- avoid the title and the divider i.e. start at line 2
-    local title_offset = opts.title == false and 0 or 2
-    local line = title_offset
-    local chars =
-        math.floor((#content - title_offset) / (26 - #keys.filter_alpha_keys(opts.dismiss_keys)))
-    local brackets = config.get().brackets or { '[', ']' }
-    local more_msg_indent =
-        -- border
-        1
-        -- left bracket
-        + #brackets[1]
-        -- key
-        + 1
-        -- right bracket
-        + #brackets[2]
-    for _, _ in pairs(content) do
-        vim.api.nvim_buf_add_highlight(
-            buffer,
-            m.namespace,
-            'MoreMsg',
-            line,
-            0,
-            more_msg_indent + chars
-        )
-        line = line + 1
+    for i, segments in ipairs(content) do
+        local line = i - 1
+        local from = 0
+        for _, segment in ipairs(segments) do
+            local to = from + #segment.text
+            vim.api.nvim_buf_add_highlight(
+                buffer,
+                m.namespace,
+                segment.highlight or 'Normal',
+                line,
+                from,
+                to
+            )
+            from = to -- + 1
+        end
     end
+
     vim.api.nvim_set_option_value('modifiable', false, { buf = buffer })
+
     for _, key in ipairs(opts.dismiss_keys) do
         vim.keymap.set(
             { 'n', 'v' },
@@ -175,6 +191,7 @@ function M.popup_window(content, on_buf_create, opts)
     if opts.hide_cursor then M.hide_cursor() end
     if on_buf_create ~= nil then on_buf_create(buffer) end
 
+    local height = #content
     local winopts = m.make_winopts(height, width, opts)
     winopts.border = opts.border
     local win = vim.api.nvim_open_win(buffer, true, winopts)
