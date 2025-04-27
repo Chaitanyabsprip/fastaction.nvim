@@ -40,8 +40,10 @@ Using `lazy.nvim`
     border = "rounded",
     hide_cursor = true,
     highlight = {
+      action = "MoreMsg",
       divider = "FloatBorder",
       key = "MoreMsg",
+      source = "Comment",
       title = "Title",
       window = "NormalFloat",
     },
@@ -78,8 +80,10 @@ in the prompt.
     border = "rounded",
     hide_cursor = true,
     highlight = {
+      action = "MoreMsg",
       divider = "FloatBorder",
       key = "MoreMsg",
+      source = "Comment",
       title = "Title",
       window = "NormalFloat",
     },

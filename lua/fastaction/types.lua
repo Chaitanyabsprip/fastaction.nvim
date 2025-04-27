@@ -15,6 +15,12 @@
 ---@field key string
 ---@field order integer
 
+---@class PopupLineSection
+---@field text string
+---@field highlight? string
+---
+---@alias PopupLine PopupLineSection[]
+
 ---@class WindowOpts
 ---@field title? string | boolean
 ---@field divider? string
