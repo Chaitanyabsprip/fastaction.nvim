@@ -74,7 +74,7 @@ function M.select(items, opts, on_choice)
     ---@type Option[]
     local options = {}
 
-    ---@type string[]
+    ---@type PopupLine[]
     local content = {}
 
     local valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys)
@@ -117,15 +117,23 @@ function M.select(items, opts, on_choice)
     for i, option in ipairs(options) do
         local spacing = largest_char_count + 1 - option.char_count
 
-        content[i] = string.format(
-            '%s%s%s %s%s%s',
-            brackets[1],
-            option.key,
-            brackets[2],
-            option.name,
-            string.rep(' ', spacing),
-            option.right_section
-        )
+        local source_text = ''
+        local action_text = option.name:gsub('(%[[a-z_-]+%])%s*$', function(source)
+            source_text = source
+            return ''
+        end)
+
+        content[i] = {
+            {
+                text = string.format('%s%s%s', brackets[1], option.key, brackets[2]),
+                highlight = conf.popup.highlight.key,
+            },
+            { text = ' ' },
+            { text = action_text, highlight = conf.popup.highlight.action },
+            { text = source_text, highlight = conf.popup.highlight.source },
+            { text = string.rep(' ', spacing) },
+            { text = option.right_section },
+        }
     end
 
     table.sort(options, function(a, b) return (a.order or 0) < (b.order or 0) end)

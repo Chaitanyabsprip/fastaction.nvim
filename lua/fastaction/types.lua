@@ -15,6 +15,12 @@
 ---@field key string
 ---@field order integer
 
+---@class PopupLineSection
+---@field text string
+---@field highlight? string
+---
+---@alias PopupLine PopupLineSection[]
+
 ---@class WindowOpts
 ---@field title? string | boolean
 ---@field divider? string
@@ -49,7 +55,7 @@
 ---`vim.ui.select`
 ---@field fallback_threshold? integer
 ---@field format_right_section? fun(item: LspCodeActionItem): string
----@field brackets table<string, string>
+---@field brackets? table<string, string>
 
 ---@class PopupConfig
 ---Title of the popup.
