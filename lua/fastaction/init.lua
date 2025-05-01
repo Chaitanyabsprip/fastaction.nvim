@@ -9,15 +9,24 @@ m.keys = {}
 
 --- Show a selection prompt with the code actions available for the cursor
 --- position.
-function M.code_action(...)
+function M.code_action(code_action_opts)
+    code_action_opts = code_action_opts or {}
+    local select_first = code_action_opts.select_first or false
+    local code_action_args = vim.tbl_deep_extend('force', {}, code_action_opts)
+    code_action_args.select_first = nil
+
     m.select_cb = vim.ui.select
     vim.g.fastaction_code_action = true
     local code_action_select = function(items, opts, on_choice)
         opts['relative'] = config.get().popup.relative or 'cursor'
-        M.select(items, opts, on_choice)
+        if select_first and #items then
+            on_choice(items[1], 1)
+        else
+            M.select(items, opts, on_choice)
+        end
     end
     vim.ui.select = code_action_select
-    vim.lsp.buf.code_action(...)
+    vim.lsp.buf.code_action(code_action_args)
 end
 
 --- Prompts the user to pick from a list of items, allowing arbitrary (potentially asynchronous)

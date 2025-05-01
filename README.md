@@ -109,7 +109,7 @@ in the prompt.
 
 **fastaction.nvim** exposes three function apart from setup.
 
-- `code_action()`: Displays code actions in a popup window.
+- `code_action(opts: {select_first: boolean})`: Displays code actions in a popup window.
 - `select(items: any, opts: SelectOpts, on_choice: fun(item: any))`: Displays a
   selection prompt window for items.
 
@@ -121,7 +121,16 @@ to your configuration:
         { 'n', 'x' },
         '<leader>a',
         '<cmd>lua require("fastaction").code_action()<CR>',
-        { buffer = bufnr }
+        { desc = "Display code actions", buffer = bufnr }
+    )
+```
+
+```lua
+    vim.keymap.set(
+        { 'n', 'x' },
+        '<leader>f',
+        '<cmd>lua require("fastaction").code_action({ select_first = true })<CR>',
+        { desc = "Select and apply first code action", buffer = bufnr }
     )
 ```
 
