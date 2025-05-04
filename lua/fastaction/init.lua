@@ -7,24 +7,6 @@ local window = require 'fastaction.window'
 ---@type string[]
 m.keys = {}
 
---- Sort code action items based on priorities defined in FastActionConfig
-local function sort_items(items)
-    local priorities = config.get_priorities(config.get().priority, true)
-
-    for _, item in ipairs(items) do
-        for _, priority in ipairs(priorities) do
-            if item.action.title:lower():match(priority.pattern) then
-                item['__order'] = priority.order or 0
-                break
-            end
-        end
-    end
-
-    table.sort(items, function(a, b) return (a.__order or 0) < (b.__order or 0) end)
-
-    return items
-end
-
 --- Show a selection prompt with the code actions available for the cursor
 --- position.
 function M.code_action(code_action_opts)
@@ -37,7 +19,7 @@ function M.code_action(code_action_opts)
     vim.g.fastaction_code_action = true
     local code_action_select = function(items, opts, on_choice)
         opts['relative'] = config.get().popup.relative or 'cursor'
-        items = sort_items(items)
+        items = M.sort_items(items)
         if select_first and #items then
             on_choice(items[1], 1)
         else
@@ -194,6 +176,24 @@ function M.setup(opts)
             })
         end,
     })
+end
+
+--- Sort code action items based on priorities defined in FastActionConfig
+function M.sort_items(items)
+    local priorities = config.get_priorities(config.get().priority, true)
+
+    for _, item in ipairs(items) do
+        for _, priority in ipairs(priorities) do
+            if item.action.title:lower():match(priority.pattern) then
+                item['__order'] = priority.order or 0
+                break
+            end
+        end
+    end
+
+    table.sort(items, function(a, b) return (a.__order or 0) < (b.__order or 0) end)
+
+    return items
 end
 
 return M
