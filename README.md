@@ -27,6 +27,9 @@ Using `lazy.nvim`
   }
 ```
 
+Note: It's mandatory to call setup function. So `opts = {}` is required
+with lazy.nvim.
+
 ## Configuration
 
 **fastaction.nvim** comes with sensible defaults to get you started quickly:
