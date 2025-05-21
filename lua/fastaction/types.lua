@@ -2,9 +2,11 @@
 ---@field title string
 ---@field invalid_keys string[]
 ---@field override_function? fun(params: GetActionConfigParams): ActionConfig | nil
----@field priorities? ActionConfig[]
 ---@field valid_keys? string[]
 ---@field kind? string
+
+---@class GetPriorityActionConfigParams: GetActionConfigParams
+---@field priorities ActionConfig[]
 
 ---@class CodeAction: lsp.CodeAction
 ---@field client_id integer
