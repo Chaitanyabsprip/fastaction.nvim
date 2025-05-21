@@ -191,7 +191,7 @@ function M.sort_items(items)
         end
     end
 
-    table.sort(items, function(a, b) return (a.__order or 0) < (b.__order or 0) end)
+    table.sort(items, function(a, b) return (a.__order or math.huge) < (b.__order or math.huge) end)
 
     return items
 end
