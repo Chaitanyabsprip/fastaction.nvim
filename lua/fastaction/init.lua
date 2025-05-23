@@ -7,6 +7,66 @@ local window = require 'fastaction.window'
 ---@type string[]
 m.keys = {}
 
+---Get action configs from the given items, checking priority configs first
+---to reserve keys before trying remaining heuristics first-come-first-serve.
+---@param items any[] Arbitrary items
+---@param opts GetActionConfigsOpts Additional options
+---@param skip_priority? boolean Iff true, skip checking for priority configs. Used internally.
+---@param options? Option[] Currently-generated options. Used internally.
+---@param largest_char_count? integer Largest char count for the items. Used internally.
+---@return Option[] options Action config options
+---@return integer largest_char_count Largest char count for the items
+---@return any[] remaining_items Remaining items to be processed
+function m.get_action_configs(items, opts, skip_priority, options, largest_char_count)
+    local conf = config.get()
+    options = options or {}
+    largest_char_count = largest_char_count or 0
+    local check_priority = not skip_priority and #opts.priorities > 0
+    local remaining_items = {} ---@type any[]
+    vim.iter(items):each(function (item)
+        local item_name = opts.format_item(item)
+        local action_config = { ---@type GetPriorityActionConfigParams
+            kind = opts.kind,
+            title = item_name,
+            priorities = opts.priorities,
+            valid_keys = opts.valid_keys,
+            invalid_keys = opts.used_keys,
+            override_function = conf.override_function,
+        }
+
+        local match ---@type ActionConfig
+        if check_priority then
+            -- Not all items will have a *priority* match. Skip assignment if there is none.
+            local priority_match = keys.get_priority_action_config(action_config)
+            if not priority_match then
+                remaining_items[#remaining_items+1] = item
+                return
+            end
+            match = priority_match
+        else
+            -- All items should have a *standard* match. If there is none, bail and error.
+            match = assert(keys.get_action_config(action_config), 'Failed to find a key to map to "' .. item_name .. '"')
+        end
+
+        local item_right_section = conf.format_right_section and conf.format_right_section(item) or ""
+        local item_char_count = #item_name + #item_right_section
+        largest_char_count = math.max(item_char_count, largest_char_count)
+        options[#options+1] = {
+            item = item,
+            name = item_name,
+            key = match.key,
+            order = match.order,
+            right_section = item_right_section,
+            char_count = item_char_count,
+        }
+    end)
+
+    if check_priority then
+        return m.get_action_configs(remaining_items, opts, true, options, largest_char_count)
+    end
+    return options, largest_char_count, remaining_items
+end
+
 --- Show a selection prompt with the code actions available for the cursor
 --- position.
 function M.code_action(code_action_opts)
@@ -69,76 +129,17 @@ end
 function M.select(items, opts, on_choice)
     local conf = config.get()
     if #items > conf.fallback_threshold then return m.select(items, opts, on_choice) end
-    opts.format_item = opts.format_item or tostring
-    ---@alias Option {name: string, key: string, item: any, order: integer, right_section: string, char_count: integer}
-    ---@type Option[]
-    local options = {}
-
     ---@type PopupLine[]
     local content = {}
 
-    local priorities = config.get_priorities(conf.priority, true)
-    local valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys)
-    local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
-    local override_function = conf.override_function
-
-    local largest_char_count = 0
-
-    ---Get priority configs first to reserve keys, then try remaining heuristics first-come-first-serve.
-    ---@param items_to_process any[] Arbitrary items
-    ---@param check_priority? boolean Iff true check priorities (and only priorities)
-    ---@return any[] remaining_items Remaining items that were not processed
-    local get_action_configs = function (items_to_process, check_priority)
-        local remaining_items = vim.list_slice(items_to_process)
-        for i, item in ipairs(items_to_process) do
-            ---@type Option
-            local option = {
-                item = item,
-                order = 0,
-                name = opts.format_item(item),
-                right_section = conf.format_right_section and conf.format_right_section(item) or '',
-            }
-            ---@type GetPriorityActionConfigParams
-            local action_config = {
-                kind = opts.kind,
-                title = option.name,
-                priorities = priorities,
-                valid_keys = valid_keys,
-                invalid_keys = used_keys,
-                override_function = override_function,
-            }
-
-            ---@type ActionConfig
-            local match
-            if check_priority then
-                -- Not all items will have a *priority* match. Skip assignment if there is none.
-                local priority_match = keys.get_priority_action_config(action_config)
-                if not priority_match then goto continue end
-                match = priority_match
-            else
-                -- All items should have a *standard* match. If there is none, bail and error.
-                match = assert(keys.get_action_config(action_config), 'Failed to find a key to map to "' .. option.name .. '"')
-            end
-
-            option.key = match.key
-            option.order = match.order
-            option.char_count = #option.name + #option.right_section
-
-            options[#options+1] = option
-            largest_char_count =  math.max(option.char_count, largest_char_count)
-            remaining_items[i] = nil
-
-            ::continue::
-        end
-        return vim.iter(remaining_items):filter(function (i) return i end):totable()
-    end
-
-    -- Skip second pass looking for priority matches if there are no priorities.
-    if #priorities then
-        assert(0 == #get_action_configs(get_action_configs(items, true)), 'Failed to generate options for some actions')
-    else
-        assert(0 == #get_action_configs(items), 'Failed to generate options for some actions')
-    end
+    local options, largest_char_count, remaining_items = m.get_action_configs(items, {
+        kind = opts.kind,
+        priorities = config.get_priorities(conf.priority, true),
+        valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys),
+        used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys),
+        format_item = opts.format_item or tostring,
+    })
+    assert(0 == #remaining_items, 'Failed to generate options for ' .. #remaining_items .. ' actions')
 
     local brackets = config.get().brackets or { '[', ']' }
     for i, option in ipairs(options) do
@@ -176,7 +177,7 @@ function M.select(items, opts, on_choice)
 
     ---@type WindowOpts | SelectOpts
     local winopts = vim.tbl_deep_extend('keep', opts, conf.popup)
-    winopts.relative = opts['relative'] or winopts.relative or 'editor'
+    winopts.relative = opts.relative or winopts.relative or 'editor'
     winopts.dismiss_keys = conf.dismiss_keys
     window.popup_window(content, setup_keymaps, winopts)
 end

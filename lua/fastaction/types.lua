@@ -35,10 +35,26 @@
 ---@field relative? string
 ---@field hide_cursor? boolean
 
+---@class Option
+---@field name string
+---@field key string
+---@field item any
+---@field order integer
+---@field right_section string
+---@field char_count integer
+
 ---@class SelectOpts
 ---@field prompt? string
+---@field relative? boolean
 ---@field format_item? fun(item: any): string
 ---@field kind? string
+
+---@class GetActionConfigsOpts
+---@field kind? string
+---@field priorities GetPriorityActionConfigParams
+---@field format_item? fun(item: any): string
+---@field valid_keys string[]
+---@field used_keys string[]
 
 ---@class FastActionConfig
 ---Configures options for the code action and select popups.
