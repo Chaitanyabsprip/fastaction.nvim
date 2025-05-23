@@ -65,13 +65,19 @@ end
 ---@return ActionConfig[]
 function M.get_priorities(priority, check_lsp)
     if not priority then return {} end
-    local ft_priorities = priority[vim.bo.filetype]
-    vim.list_extend(ft_priorities or {}, priority.default or {})
-    if not check_lsp then return ft_priorities end
-    local clients = vim.lsp.get_clients { bufnr = 0 }
-    local lsps = m.map(clients, function(client) return client.name end)
-    local lsp_priorities = m.map(lsps, function(p) return priority[p] end)
-    return vim.list_extend(ft_priorities or {}, lsp_priorities or {})
+    local priorities = {}
+    vim.list_extend(priorities, priority[vim.bo.filetype] or {})
+    vim.list_extend(priorities, priority.default or {})
+    if check_lsp then
+        local lsp_priorities = vim.iter(vim.lsp.get_clients({ bufnr = 0 }))
+            :map(function(client) return client.name end)
+            :map(function(name) return priority[name] end)
+            :flatten(1) -- Merge attached LSPs into single priorities list
+            :filter(function(p) return p end)
+            :totable()
+        vim.list_extend(priorities, lsp_priorities)
+    end
+    return priorities
 end
 
 ---@generic K, V, R
