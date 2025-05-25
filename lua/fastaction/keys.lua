@@ -7,7 +7,14 @@ M.AUTO_ORDER = 10
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_title(params)
-    if params.title == nil or params.title == '' or #params.valid_keys == 0 then return nil end
+    if
+        params.title == nil
+        or params.title == ''
+        or not params.valid_keys
+        or #params.valid_keys == 0
+    then
+        return nil
+    end
     local index = 1
     local increment = #params.valid_keys[1]
     params.title = string.lower(params.title):lower()
@@ -27,7 +34,7 @@ end
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function m.get_action_config_from_keys(params)
-    if #params.valid_keys == nil or #params.valid_keys == 0 then return nil end
+    if not params.valid_keys or #params.valid_keys == 0 then return nil end
     for _, k in pairs(params.valid_keys) do
         if not vim.tbl_contains(params.invalid_keys, k) then
             return { key = k, order = M.AUTO_ORDER }
