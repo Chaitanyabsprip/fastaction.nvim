@@ -51,15 +51,9 @@ function m.get_action_config_from_priorities(params)
 end
 
 ---@param params GetActionConfigParams
+---@param funcs table<fun(params: GetActionConfigParams): ActionConfig | nil>
 ---@return ActionConfig | nil
-function M.get_action_config(params)
-    local funcs = {
-        m.get_action_config_from_priorities,
-        m.get_action_config_from_title,
-        m.get_action_config_from_keys,
-    }
-    if params.override_function then table.insert(funcs, 1, params.override_function) end
-    params.override_function = nil
+function m.get_action_config_from_funcs(params, funcs)
     for _, f in ipairs(funcs) do
         if f then
             local a = f(params)
@@ -71,10 +65,25 @@ function M.get_action_config(params)
     end
 end
 
----@param dismiss_keys string[]
+---@param params GetPriorityActionConfigParams
+---@return ActionConfig | nil
+function M.get_priority_action_config(params)
+    return m.get_action_config_from_funcs(params, { m.get_action_config_from_priorities })
+end
+
+---@param params GetActionConfigParams
+---@return ActionConfig | nil
+function M.get_action_config(params)
+    return m.get_action_config_from_funcs(params, vim.list_extend(
+        params.override_function and { params.override_function } or {},
+        { m.get_action_config_from_title, m.get_action_config_from_keys }
+    ))
+end
+
+---@param keys string[]
 ---@return fun(key: string): boolean
-local function filter_valid(dismiss_keys)
-    return function(key) return not vim.tbl_contains(dismiss_keys, key) end
+local function filter_valid(keys)
+    return function(key) return not vim.tbl_contains(keys, key) end
 end
 
 ---Generate n-letter permutations given a list of letters
