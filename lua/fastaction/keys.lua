@@ -81,10 +81,13 @@ end
 ---@param params GetActionConfigParams
 ---@return ActionConfig | nil
 function M.get_action_config(params)
-    return m.get_action_config_from_funcs(params, vim.list_extend(
-        params.override_function and { params.override_function } or {},
-        { m.get_action_config_from_title, m.get_action_config_from_keys }
-    ))
+    return m.get_action_config_from_funcs(
+        params,
+        vim.list_extend(
+            params.override_function and { params.override_function } or {},
+            { m.get_action_config_from_title, m.get_action_config_from_keys }
+        )
+    )
 end
 
 ---@param keys string[]
@@ -93,34 +96,43 @@ local function filter_valid(keys)
     return function(key) return not vim.tbl_contains(keys, key) end
 end
 
----Generate n-letter permutations given a list of letters
+--- Lazily generates up to `max_results` permutations of length `n` from `letters`, excluding `taken`.
 ---@param letters string[]
 ---@param n integer
 ---@param taken string[]
+---@param max_results integer
 ---@return string[]
-local function generate_permutations(letters, n, taken)
-    local permutations = {}
+local function generate_permutations(letters, n, taken, max_results)
+    local results = {}
     taken = taken or {}
+    ---@type table<string, boolean>
+    local taken_set = {}
+    for _, t in ipairs(taken) do
+        taken_set[t] = true
+    end
 
-    ---@param current string
-    ---@param remaining string[]
-    local function permute(current, remaining)
+    ---@type fun(current: string, used: table<string, boolean>): boolean
+    local function backtrack(current, used)
+        if #results >= max_results then return true end
         if #current == n then
-            table.insert(permutations, current)
-            return
+            table.insert(results, current)
+            return false
         end
-        for i = 1, #remaining do
-            local nextLetter = remaining[i]
-            if not (string.len(current) == 0 and vim.tbl_contains(taken, nextLetter)) then
-                permute(
-                    current .. nextLetter,
-                    vim.list_extend({ unpack(remaining, 1, i - 1) }, { unpack(remaining, i + 1) })
-                )
+
+        for i = 1, #letters do
+            local ch = letters[i]
+            if not used[ch] and not (#current == 0 and taken_set[ch]) then
+                used[ch] = true
+                local stop = backtrack(current .. ch, used)
+                used[ch] = nil
+                if stop then return true end
             end
         end
+        return false
     end
-    permute('', letters)
-    return permutations
+
+    backtrack('', {})
+    return results
 end
 
 ---@param n integer
@@ -166,7 +178,7 @@ function M.generate_keys(item_count, allowed_keys, dismiss_keys)
     local taken_keys = config.get_prioritised_keys(vim.bo.filetype)
     local valid_keys = vim.tbl_filter(
         filter_valid(dismiss_keys),
-        generate_permutations(allowed_keys, chars, taken_keys)
+        generate_permutations(allowed_keys, chars, taken_keys, item_count)
     )
     return valid_keys
 end
