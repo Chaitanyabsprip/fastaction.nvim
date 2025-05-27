@@ -172,13 +172,14 @@ end
 ---@return string[]
 function M.generate_keys(item_count, allowed_keys, dismiss_keys)
     dismiss_keys = M.filter_alpha_keys(dismiss_keys)
+    local dismiss_count = #dismiss_keys
     local chars = calculate_min_keymap_length(#allowed_keys, item_count)
 
     ---@type string[]
     local taken_keys = config.get_prioritised_keys(vim.bo.filetype)
     local valid_keys = vim.tbl_filter(
         filter_valid(dismiss_keys),
-        generate_permutations(allowed_keys, chars, taken_keys, item_count)
+        generate_permutations(allowed_keys, chars, taken_keys, item_count + dismiss_count)
     )
     return valid_keys
 end
