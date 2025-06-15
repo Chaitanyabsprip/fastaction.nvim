@@ -6,7 +6,7 @@ m.defaults = {
     brackets = { '[', ']' },
     dismiss_keys = { 'j', 'k', '<c-c>', 'q' },
     keys = 'fjdkslaghrueiwocnxvbmztyqp',
-    override_function = function(_) end,
+    override_function = nil,
     popup = {
         border = 'rounded',
         hide_cursor = true,
@@ -69,7 +69,8 @@ function M.get_priorities(priority, check_lsp)
     vim.list_extend(priorities, priority[vim.bo.filetype] or {})
     vim.list_extend(priorities, priority.default or {})
     if check_lsp then
-        local lsp_priorities = vim.iter(vim.lsp.get_clients({ bufnr = 0 }))
+        local lsp_priorities = vim
+            .iter(vim.lsp.get_clients { bufnr = 0 })
             :map(function(client) return client.name end)
             :map(function(name) return priority[name] end)
             :flatten(1) -- Merge attached LSPs into single priorities list

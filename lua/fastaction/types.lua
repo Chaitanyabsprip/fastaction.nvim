@@ -20,7 +20,7 @@
 ---@class PopupLineSection
 ---@field text string
 ---@field highlight? string
----
+
 ---@alias PopupLine PopupLineSection[]
 
 ---@class WindowOpts

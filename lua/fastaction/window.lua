@@ -1,6 +1,4 @@
 local M = {}
-local config = require 'fastaction.config'
-local keys = require 'fastaction.keys'
 local m = {}
 
 m.namespace = vim.api.nvim_create_namespace 'windmenu'
@@ -59,7 +57,7 @@ function m.make_winopts(height, width, opts)
     end
     return {
         col = col,
-        height = height,
+        height = height or 1,
         relative = opts.relative or 'cursor',
         row = row,
         style = 'minimal',
