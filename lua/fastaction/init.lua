@@ -99,10 +99,10 @@ function M.select(items, opts, on_choice)
                 text = string.format('%s%s%s', brackets[1], option.key, brackets[2]),
                 highlight = conf.popup.highlight.key,
             },
-            { text = ' ' },
+            { text = ' ', highlight = conf.popup.highlight.window },
             { text = action_text, highlight = conf.popup.highlight.action },
             { text = source_text, highlight = conf.popup.highlight.source },
-            { text = string.rep(' ', spacing) },
+            { text = string.rep(' ', spacing), highlight = conf.popup.highlight.window },
             { text = option.right_section },
         }
     end
@@ -122,7 +122,8 @@ function M.select(items, opts, on_choice)
     local winopts = vim.tbl_deep_extend('keep', opts, conf.popup)
     winopts.relative = opts.relative or winopts.relative or 'editor'
     winopts.dismiss_keys = conf.dismiss_keys
-    window.popup_window(content, setup_keymaps, winopts)
+    local window_highlight = conf.popup.highlight.window
+    window.popup_window(content, setup_keymaps, winopts, window_highlight)
 end
 
 ---@param opts FastActionConfig
