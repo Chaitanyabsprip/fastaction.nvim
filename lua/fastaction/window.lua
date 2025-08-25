@@ -94,8 +94,9 @@ end
 ---@param content PopupLine[]
 ---@param on_buf_create fun(buffer: integer) | nil
 ---@param opts WindowOpts | SelectOpts
+---@param window_highlight string
 ---@return integer, integer
-function M.popup_window(content, on_buf_create, opts)
+function M.popup_window(content, on_buf_create, opts, window_highlight)
     vim.validate {
         content = { content, 't' },
         on_buf_create = { on_buf_create, 'f' },
@@ -117,7 +118,7 @@ function M.popup_window(content, on_buf_create, opts)
     local width = 0
     for i, line in ipairs(content) do
         -- Clean up the input and add left pad.
-        table.insert(line, 1, { text = ' ' })
+        table.insert(line, 1, { text = ' ', highlight = window_highlight })
         local line_str = assemble_line(line)
         local line_width = vim.fn.strdisplaywidth(line_str)
         width = math.max(line_width, width)
